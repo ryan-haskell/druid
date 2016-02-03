@@ -49,6 +49,9 @@ Canvas.prototype.redraw = function(actors) {
         return;
 
     this.ctx.imageSmoothingEnabled = false;
+    this.ctx.mozImageSmoothingEnabled = false;
+    this.ctx.webkitImageSmoothingEnabled = false;
+
 
     var tileSize = this.scaledTileSize;
 
@@ -87,12 +90,25 @@ Canvas.prototype.redraw = function(actors) {
 
             var image = this.images.bgTiles[tile.type].image;
 
-            this.ctx.drawImage(
-                image,
-                x*tileSize - xOffset,
-                y*tileSize - yOffset,
-                tileSize, tileSize
-            );
+            if(tile.hasSubImage)
+            {
+                this.ctx.drawImage(
+                    image, 
+                    tile.sx, tile.sy, 
+                    TILE_SIZE, TILE_SIZE,
+                    x*tileSize - xOffset,
+                    y*tileSize - yOffset,
+                    tileSize, tileSize
+                );
+            }
+            else {
+                this.ctx.drawImage(
+                    image,
+                    x*tileSize - xOffset,
+                    y*tileSize - yOffset,
+                    tileSize, tileSize
+                );
+            }
 
         }
     }
