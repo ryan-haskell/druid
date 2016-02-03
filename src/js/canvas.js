@@ -61,8 +61,8 @@ Canvas.prototype.redraw = function(actors) {
     var PIXELS_ACROSS = TILES_ACROSS * tileSize;
     var PIXELS_DOWN = TILES_DOWN * tileSize;
 
-    var leftX = (parseInt((PIXELS_ACROSS - tileSize)/2) - px + WORLD_WIDTH*tileSize) % (WORLD_WIDTH*tileSize);
-    var topY = (parseInt((PIXELS_DOWN - tileSize)/2) - py + WORLD_HEIGHT*tileSize) % (WORLD_HEIGHT*tileSize);
+    var leftX = (px - parseInt((PIXELS_ACROSS - tileSize)/2) + WORLD_WIDTH*tileSize) % (WORLD_WIDTH*tileSize);
+    var topY = (py - parseInt((PIXELS_DOWN - tileSize)/2) + WORLD_HEIGHT*tileSize) % (WORLD_HEIGHT*tileSize);
 
     var leftTileX = parseInt(leftX / tileSize);
     var topTileY = parseInt(topY / tileSize);
@@ -77,8 +77,8 @@ Canvas.prototype.redraw = function(actors) {
     //  Render background tiles
     var bgTiles = this.map.bg;
 
-    for(y = -buffer; y < TILES_DOWN + buffer; y++) {
-        for(x = -buffer; x < TILES_ACROSS + buffer; x++) { //  TODO: Fix TA + 1 to allow noneven tileacross values
+    for(var y = -buffer; y < TILES_DOWN + buffer; y++) {
+        for(var x = -buffer; x < TILES_ACROSS + buffer; x++) { //  TODO: Fix TA + 1 to allow noneven tileacross values
 
             var worldY = (topTileY + y + WORLD_HEIGHT) % WORLD_HEIGHT;
             var worldX = (leftTileX + x + WORLD_WIDTH) % WORLD_WIDTH;
