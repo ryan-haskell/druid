@@ -1,6 +1,6 @@
 var TileImage = require('./tile-image');
 
-const TILES_ACROSS = 15;
+const TILES_ACROSS = 16;
 const TILES_DOWN = 9;
 
 const ACTOR_DIR = 'actors/';
@@ -149,6 +149,7 @@ Canvas.prototype.loadImages = function() {
         this.images.actors.player[dirs[i]] = new TileImage(ACTOR_DIR + 'player/'+dirs[i]+'.png');
 
     this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
+    this.images.bgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
     this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
 
 };

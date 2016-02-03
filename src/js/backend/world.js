@@ -29,97 +29,115 @@ World.prototype.generateRandomMap = function(){
         tiles[y] = [];
         for(var x = 0; x < WORLD_WIDTH; x++) {
 
-            var type = (parseInt(Math.random() * 2)) ? 'grass' : 'water';
+            var type = (parseInt(Math.random() * 3)) ? 'grass' : 'water';
 
             tiles[y][x] = new Tile(type);
         }
     }
 
-    this.updateWater();
+    this.addWorldDetails();
 };
 
-World.prototype.updateWater = function() {
+World.prototype.addWorldDetails = function() {
 
-    var dirs = ['up','down','left','right'];
 
     for(var y = 0; y < WORLD_HEIGHT; y++) {
         for(var x = 0; x < WORLD_WIDTH; x++) {
 
             var tile = this.map.bg[y][x];
             
-            if(!tile.hasSubImage) continue;
-
-            var neighbors = this.getTileNeighbors(x,y);
-            var numSides = 0;
-
-            var grassDirs = {
-                up: false,
-                down: false,
-                left: false,
-                right: false
-            };
-
-            for(var i in neighbors) {
-                if(neighbors[i].type == 'grass')
-                {
-                    numSides++;
-                    grassDirs[dirs[i]] = true;
-                }
-            }
-
-            if(numSides == 1)
-            {
-                tile.sx = 1;
-
-                tile.sy = 
-                    (grassDirs.up) ? 0:
-                    (grassDirs.down) ? 1:
-                    (grassDirs.left) ? 2:3;
-            }
-            else if(numSides == 2) 
-            {
-                if(grassDirs.up && grassDirs.down)
-                {
-                    tile.sx = 0; 
-                    tile.sy = 2;
-                }
-                else if(grassDirs.left && grassDirs.right)
-                {
-                    tile.sx = 0; 
-                    tile.sy = 3;
-                }
-                else
-                {
-                    tile.sx = 2;
-
-                    tile.sy = //  I know I shouldn't be, but I'm proud of this monster.
-                        (grassDirs.up) ? 
-                            (grassDirs.right) ? 0:1
-                        :
-                            (grassDirs.right) ? 3:2;
-                }
-            }
-            else if(numSides == 3)
-            {
-                tile.sx = 3;
-
-                tile.sy =
-                    (!grassDirs.up) ? 0:
-                    (!grassDirs.down) ? 1:
-                    (!grassDirs.left) ? 2:3;
-            }
-            else if(numSides == 4)
-            {
-                tile.sy = 1;
-            }
-
-
-            tile.sx *= TILE_SIZE;
-            tile.sy *= TILE_SIZE;
+            if(tile.type == 'water') 
+                this.addWaterEdges(tile,x,y);
+            else if(tile.type == 'grass')
+                this.plantTrees(tile,x,y);
 
         }
     }
 };
+
+World.prototype.addWaterEdges = function(tile,x,y) {
+
+    var dirs = ['up','down','left','right'];
+    var neighbors = this.getTileNeighbors(x,y);
+    var numSides = 0;
+
+    var grassDirs = {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+    };
+
+    for(var i in neighbors) {
+        if(neighbors[i].type == 'grass')
+        {
+            numSides++;
+            grassDirs[dirs[i]] = true;
+        }
+    }
+
+    if(numSides == 1)
+    {
+        tile.sx = 1;
+
+        tile.sy = 
+            (grassDirs.up) ? 0:
+            (grassDirs.down) ? 1:
+            (grassDirs.left) ? 2:3;
+    }
+    else if(numSides == 2) 
+    {
+        if(grassDirs.up && grassDirs.down)
+        {
+            tile.sx = 0; 
+            tile.sy = 2;
+        }
+        else if(grassDirs.left && grassDirs.right)
+        {
+            tile.sx = 0; 
+            tile.sy = 3;
+        }
+        else
+        {
+            tile.sx = 2;
+
+            tile.sy = //  I know I shouldn't be, but I'm proud of this monster.
+                (grassDirs.up) ? 
+                    (grassDirs.right) ? 0:1
+                :
+                    (grassDirs.left) ? 2:3;
+        }
+    }
+    else if(numSides == 3)
+    {
+        tile.sx = 3;
+
+        tile.sy =
+            (!grassDirs.up) ? 0:
+            (!grassDirs.down) ? 1:
+            (!grassDirs.left) ? 2:3;
+    }
+    else if(numSides == 4)
+    {
+        tile.sy = 1;
+    }
+
+
+    tile.sx *= TILE_SIZE;
+    tile.sy *= TILE_SIZE;
+};
+
+World.prototype.plantTrees = function(tile,x,y) {
+
+    var rand = parseInt(Math.random()*10);
+
+    if(rand == 0)
+    {
+        tile.type = 'tree';
+        tile.setWalkable(tile.type);
+    }
+
+}
 
 World.prototype.initActors = function() {
     this.actors.push(new Actor(1,2));
