@@ -1,5 +1,5 @@
-# SimpleGulp
-A boilerplate for starting a simple project with gulp.
+# Druid
+A game that I will never finish.
 
 ### Setup
 1. Download the code from this repository.
@@ -8,4 +8,3 @@ A boilerplate for starting a simple project with gulp.
 
 ### Dev Workflow
 1. Run **`gulp`** to continuously build 'src' files as you code.
-2. Run **`python server.py`** to start a local server that supports routing.
