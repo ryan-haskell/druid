@@ -56,9 +56,24 @@ World.prototype.movePlayer = function(direction) {
 
     if(!player.isMoving)
     {
-        if(player.canMove(direction))
+        player.dir = direction;
+
+        if(player.canMove(this.getTileInDirection(player.x,player.y,direction)))
             player.slide(direction);
     }
+};
+
+World.prototype.getTileInDirection = function(x,y,dir) {
+
+    var bgTiles = this.map.bg;
+
+    var tileX = (dir == 'left') ? x-1 : (dir == 'right') ? x + 1 : x;
+    var tileY = (dir == 'up') ? y-1 : (dir == 'down') ? y + 1 : y;
+
+    tileX = (tileX + WORLD_WIDTH) % WORLD_WIDTH;
+    tileY = (tileY + WORLD_HEIGHT) % WORLD_HEIGHT;
+
+    return this.map.bg[tileY][tileX];
 };
 
 module.exports = World;

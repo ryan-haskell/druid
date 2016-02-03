@@ -17,13 +17,12 @@ Mob.prototype = Object.create(Actor.prototype);
 Mob.prototype.constructor = Mob;
 
 Mob.prototype.canMove = function(tile) {
-    return true;
+    return tile.walkable;
 };
 
 
 Mob.prototype.slide = function(dir) {
 
-    this.dir = dir;
     this.isMoving = true;
     var self = this;
 
