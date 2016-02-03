@@ -98,7 +98,7 @@ Canvas.prototype.redraw = function(actors) {
     }
 
     this.ctx.drawImage(
-        this.images.actors.player.image,
+        this.images.actors.player[actors[0].dir].image,
         parseInt((PIXELS_ACROSS - tileSize)/2),
         parseInt((PIXELS_DOWN - tileSize)/2),
         tileSize, tileSize
@@ -118,14 +118,19 @@ Canvas.prototype.loadImages = function() {
 
     TileImage.callback = function(){
         numLoaded++;
-        if (numLoaded == 3)
+        if (numLoaded == 6)
         {
             self.imagesLoaded = true;
             self.redraw();
         }
     }
 
-    this.images.actors.player = new TileImage(ACTOR_DIR + 'player/front.png');
+    this.images.actors.player = {}
+
+    var dirs = ['up','down','left','right'];
+
+    for(i in dirs)
+        this.images.actors.player[dirs[i]] = new TileImage(ACTOR_DIR + 'player/'+dirs[i]+'.png');
 
     this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
     this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');

@@ -32,8 +32,6 @@ World.prototype.generateRandomMap = function(){
             var type = (parseInt(Math.random() * 2)) ? 'grass' : 'water';
 
             tiles[y][x] = new Tile(type);
-            if(y==0)
-                console.log("[" + x + ",0]: " +  type);
         }
     }
 };

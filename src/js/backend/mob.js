@@ -1,12 +1,13 @@
 var Actor = require('./actor');
 
-const MS_PER_UPDATE = 50;
+const MS_PER_UPDATE = 200;
 
 var Mob = function(x,y,dir) {
     
     Actor.call(this,x,y);
 
     this.dir = (dir == null) ? 'down':dir; 
+    this.moveSpeed = 10;
     this.isMoving = false;
     this.totalSlideSteps = TILE_SIZE;
     this.currentSlideSteps = 0;
@@ -22,15 +23,13 @@ Mob.prototype.canMove = function(tile) {
 
 Mob.prototype.slide = function(dir) {
 
-    console.log(dir);
-
     this.dir = dir;
     this.isMoving = true;
     var self = this;
 
     setTimeout(function(){
         self.slideStep(dir);
-    },MS_PER_UPDATE);
+        },MS_PER_UPDATE/this.moveSpeed);
 
 };
 
@@ -45,7 +44,7 @@ Mob.prototype.slideStep = function(dir) {
         var self = this;
         setTimeout(function(){
             self.slideStep(dir);
-        },MS_PER_UPDATE);
+        },MS_PER_UPDATE/this.moveSpeed);
     }
     else {
 
@@ -57,8 +56,6 @@ Mob.prototype.slideStep = function(dir) {
 
         this.currentSlideSteps = 0;
         this.isMoving = false;
-
-        console.log(this);
     }
 
 };
