@@ -3,7 +3,7 @@ var World = require('./world');
 var Canvas = require('../canvas');
 var Input = require('../input');
 
-const FPS = 30;
+const FPS = 45;
 const MS_PER_UPDATE = 1000/FPS;
 
 var Game = function() {
