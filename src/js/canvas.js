@@ -1,8 +1,7 @@
 var TileImage = require('./tile-image');
 
-const TILES_ACROSS = 16;
+const TILES_ACROSS = 15;
 const TILES_DOWN = 9;
-const TILE_SIZE = 15;
 
 const ACTOR_DIR = 'actors/';
 const BGTILE_DIR = 'bgTiles/';
@@ -14,6 +13,7 @@ var Canvas = function(map){
 
 	this.canvas = document.getElementById('canvas');
 	this.ctx = canvas.getContext('2d');
+    this.scale = 1;
 
     this.imagesLoaded = false;
 	this.setCanvasDimensions();
@@ -31,68 +31,67 @@ Canvas.prototype.setCanvasDimensions = function() {
 Canvas.prototype.resizeCanvas = function() {
     var width = (window.innerWidth);
     var height = (window.innerHeight);
-    var tall = (width / TILES_ACROSS < height / TILES_DOWN);
 
-    var min = tall ? width : height;
+    var maxScaleAcross =  parseInt(width / TILES_ACROSS / TILE_SIZE);
+    var maxScaleDown = parseInt(height / TILES_DOWN / TILE_SIZE);
 
-    //  guarantees that the size of a tile is an integer value
-    min = parseInt(min / TILE_SIZE) * TILE_SIZE;
+    //  Get the minimum scale for each dimension
+    this.scale = (maxScaleDown < maxScaleAcross) ? maxScaleDown : maxScaleAcross;
+    this.scaledTileSize = this.scale * TILE_SIZE;
 
-    if(tall)    //  limited by width
-    {
-        min = parseInt(min / TILES_ACROSS) * TILES_ACROSS;
-        this.canvas.width = min;
-        this.canvas.height = parseInt( min / TILES_ACROSS) * TILES_DOWN;
-        this.tileSize = min / TILES_ACROSS;
-    }
-    else
-    {
-        min = parseInt(min / TILES_DOWN) * TILES_DOWN;
-        this.canvas.height = min;
-        this.canvas.width = parseInt( min / TILES_DOWN) * TILES_ACROSS;
-        this.tileSize = min / TILES_DOWN;
-    }
-
+    this.canvas.width = TILES_ACROSS * this.scaledTileSize;
+    this.canvas.height = TILES_DOWN * this.scaledTileSize;
 };
 
 Canvas.prototype.redraw = function(actors) {
 
-    if(!this.imagesLoaded || actors == null) return;
+    if(!this.imagesLoaded || actors == null) 
+        return;
 
     this.ctx.imageSmoothingEnabled = false;
 
-    var tileSize = this.tileSize;
-    var worldWidth = this.map.width;
-    var worldHeight = this.map.height;
+    var tileSize = this.scaledTileSize;
 
-    var xOffset = TILES_ACROSS % 2 == 0 ? parseInt(tileSize/2) : 0;
-    var yOffset = TILES_DOWN % 2 == 0 ? parseInt(tileSize/2) : 0;
-    var PIXELS_ACROSS = TILES_ACROSS*tileSize + xOffset;
-    var PIXELS_DOWN = TILES_DOWN*tileSize + yOffset;
+    //  Get player's x and y corner of screen
+    var playerLocation = actors[0].getLocation(tileSize);
+    var px = playerLocation.x;
+    var py = playerLocation.y;
 
-    //  Get top left corner of screen
-    var player = actors[0];
-    var leftX = player.x - parseInt(PIXELS_ACROSS/2);
-    var topY = player.y - parseInt(PIXELS_DOWN/2);
+    //  Determine top left pixel on screen
+    var PIXELS_ACROSS = TILES_ACROSS * tileSize;
+    var PIXELS_DOWN = TILES_DOWN * tileSize;
+
+    var leftX = (parseInt((PIXELS_ACROSS - tileSize)/2) - px + WORLD_WIDTH*tileSize) % (WORLD_WIDTH*tileSize);
+    var topY = (parseInt((PIXELS_DOWN - tileSize)/2) - py + WORLD_HEIGHT*tileSize) % (WORLD_HEIGHT*tileSize);
+
+    var leftTileX = parseInt(leftX / tileSize);
+    var topTileY = parseInt(topY / tileSize);
+
+    //  Determine offset of screen
+    var xOffset = leftX % tileSize;
+    var yOffset = topY % tileSize;
+
+    //  Allow buffering of tiles on side
+    var buffer = 1;
 
     //  Render background tiles
     var bgTiles = this.map.bg;
 
-    for(y = topY; y < PIXELS_DOWN; y+=tileSize) {
-        for(x = leftX; x < PIXELS_ACROSS; x+=tileSize) {
+    for(y = -buffer; y < TILES_DOWN + buffer; y++) {
+        for(x = -buffer; x < TILES_ACROSS + buffer; x++) { //  TODO: Fix TA + 1 to allow noneven tileacross values
 
-            var indexY = (parseInt(y/tileSize) + worldHeight) % worldHeight;
-            var indexX = (parseInt(x/tileSize) + worldWidth) % worldWidth;
+            var worldY = (topTileY + y + WORLD_HEIGHT) % WORLD_HEIGHT;
+            var worldX = (leftTileX + x + WORLD_WIDTH) % WORLD_WIDTH;
 
-            var tile = bgTiles[indexY][indexX];
+            var tile = bgTiles[worldY][worldX];
 
             var image = this.images.bgTiles[tile.type].image;
 
             this.ctx.drawImage(
                 image,
-                x - xOffset,
-                y - yOffset,
-                this.tileSize, this.tileSize
+                x*tileSize - xOffset,
+                y*tileSize - yOffset,
+                tileSize, tileSize
             );
 
         }
@@ -100,8 +99,8 @@ Canvas.prototype.redraw = function(actors) {
 
     this.ctx.drawImage(
         this.images.actors.player.image,
-        tileSize * parseInt(TILES_ACROSS/2) - parseInt(tileSize/2),
-        tileSize * parseInt(TILES_DOWN/2),
+        parseInt((PIXELS_ACROSS - tileSize)/2),
+        parseInt((PIXELS_DOWN - tileSize)/2),
         tileSize, tileSize
     );
 

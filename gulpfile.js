@@ -6,11 +6,15 @@ var sass = require('gulp-sass');
 var paths = {
     html: 'src/**/*.html',
     js: './src/js/**/*.js',
+    constants: './src/js/constants.js',
     css: './src/css/*.scss',
     img: './src/img/**/*.png'
 };
 
-gulp.task('browserify', function() {
+gulp.task('JS', function() {
+
+    gulp.src(paths.constants)
+        .pipe(gulp.dest('dist/static'))
 
     return browserify('./src/js/app.js')
         .bundle()
@@ -19,17 +23,17 @@ gulp.task('browserify', function() {
 
 });
 
-gulp.task('copyHTML', function() {
+gulp.task('HTML', function() {
 
     gulp.src(paths.html)
         .pipe(gulp.dest('dist'))
 
 });
 
-gulp.task('copyImages', function() {
+gulp.task('images', function() {
 
     gulp.src(paths.img)
-        .pipe(gulp.dest('dist/img'))
+        .pipe(gulp.dest('dist/static/img'))
 
 });
 
@@ -41,12 +45,11 @@ gulp.task('sass', function () {
 
 gulp.task('watch', function() {
 
-    gulp.watch(paths.html, ['copyHTML']);
+    gulp.watch(paths.html, ['HTML']);
     gulp.watch(paths.css, ['sass']);
-    gulp.watch(paths.js, ['browserify']);    
+    gulp.watch(paths.js, ['JS']);   
     gulp.watch(paths.img, ['copyImages']);
-
 
 });
 
-gulp.task('default', ['watch', 'browserify', 'sass', 'copyHTML', 'copyImages']);
+gulp.task('default', ['watch', 'JS', 'sass', 'HTML', 'images']);

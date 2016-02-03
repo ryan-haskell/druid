@@ -1,4 +1,4 @@
-const IMG_DIR = 'img/';
+const IMG_DIR = 'static/img/';
 
 var TileImage = function(src){
     
