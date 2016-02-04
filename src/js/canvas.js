@@ -81,6 +81,7 @@ Canvas.prototype.redraw = function(actors) {
 
     //  Render background tiles
     var bgTiles = this.map.bg;
+    var worldToCanvas = [];
 
     for(var y = -buffer; y < TILES_DOWN + buffer; y++) {
         for(var x = -buffer; x < TILES_ACROSS + buffer; x++) { //  TODO: Fix TA + 1 to allow noneven tileacross values
@@ -112,19 +113,51 @@ Canvas.prototype.redraw = function(actors) {
                 );
             }
 
-            this.checkForDrawableActor(actors,worldX, worldY,x,y,xOffset,yOffset,tileSize);
+            if(worldToCanvas[worldY] == null)
+                worldToCanvas[worldY] = [];
+
+            worldToCanvas[worldY][worldX] = {
+                x: x*tileSize - xOffset,
+                y: y*tileSize - yOffset
+            };
+
         }
     }
 
+    this.renderActors(actors, worldToCanvas,tileSize);
 
-    this.ctx.drawImage(
-        this.images.actors.player[actors[0].dir].image,
-        parseInt((PIXELS_ACROSS - tileSize)/2),
-        parseInt((PIXELS_DOWN - tileSize)/2),
-        tileSize, tileSize
-    );
+};
 
-}
+Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
+    for(var i in actors)
+    {
+        var actor = actors[i];
+
+        if(worldToCanvas[actor.y] == null || worldToCanvas[actor.y][actor.x] == null)
+            continue;
+
+        var canvasLoc = worldToCanvas[actor.y][actor.x];
+        var actorLoc = actor.getLocation(tileSize);
+        var xOffset = actor.x*tileSize - actorLoc.x;
+        var yOffset = actor.y*tileSize - actorLoc.y;
+
+        var x = canvasLoc.x - xOffset;
+        var y = canvasLoc.y - yOffset;
+
+        this.renderActor(actor, x, y, tileSize);
+    }
+};
+
+Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
+        var image = this.getImageForActor(actor);
+
+        this.ctx.drawImage(
+            image,
+            x,
+            y,
+            tileSize, tileSize
+        );
+};
 
 Canvas.prototype.checkForDrawableActor = function(actors, worldX, worldY, x, y, xOffset, yOffset, tileSize) {
 
