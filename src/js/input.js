@@ -42,16 +42,16 @@ Input.prototype.onKeyUp = function(keyCode) {
 
 Input.prototype.setKeyState = function(keyCode, value) {
     switch(keyCode) {
-        case 87: // w
+        case 87: case 38: // w
             this.state.move.up = value;
             return;
-        case 65: // a
+        case 65: case 37: // a
             this.state.move.left = value;
             return;
-        case 83: // s
+        case 83: case 40: // s
             this.state.move.down = value;
             return;
-        case 68: // d
+        case 68: case 39: // d
             this.state.move.right = value;
             return;
     }
