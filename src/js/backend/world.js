@@ -1,5 +1,6 @@
 
 var Actor = require('./actor');
+var Npc = require('./npc');
 var Player = require('./player');
 var Tile = require('./tile');
 
@@ -69,7 +70,7 @@ World.prototype.addWaterEdges = function(tile,x,y) {
     };
 
     for(var i in neighbors) {
-        if(neighbors[i].type == 'grass')
+        if(neighbors[i].type == 'grass' || neighbors[i].type == 'tree')
         {
             numSides++;
             grassDirs[dirs[i]] = true;
@@ -140,8 +141,8 @@ World.prototype.plantTrees = function(tile,x,y) {
 }
 
 World.prototype.initActors = function() {
-    this.actors.push(new Actor(1,2));
-    this.actors.push(new Actor(3,4));
+    this.actors.push(new Npc(1,2,'down','spin','female'));
+    this.actors.push(new Npc(5,0,'down','wander','female'));
 };
 
 World.prototype.initPlayer = function() {
@@ -154,16 +155,67 @@ World.prototype.getActors = function() {
     return this.actors;
 };
 
-World.prototype.movePlayer = function(direction) {
+
+World.prototype.updateActors = function(state) {
+    this.attemptPlayerMove(state);
+
+    for(var i in this.actors)
+    {
+        var actor = this.actors[i];
+
+        if(actor instanceof Npc)
+            actor.act(this);
+    }
+};
+
+World.prototype.attemptPlayerMove = function(state) {
+    var move = state.move;
+
+    for(i in move)
+    {
+        if(move[i] == true)
+        {
+            this.movePlayer(i);
+            return;
+        }
+    }
+};
+
+World.prototype.movePlayer = function(dir) {
     var player = this.player;
 
-    if(!player.isMoving)
-    {
-        player.dir = direction;
+    this.moveMob(player,dir);
+};
 
-        if(player.canMove(this.getTileInDirection(player.x,player.y,direction)))
-            player.slide(direction);
+World.prototype.moveMob = function(mob,dir) {
+
+    if(!mob.isMoving)
+    {
+        mob.dir = dir;
+
+        var x = (dir == 'left') ? mob.x-1 : (dir == 'right') ? mob.x + 1 : mob.x;
+        var y = (dir == 'up') ? mob.y-1 : (dir == 'down') ? mob.y + 1 : mob.y;
+
+        x = (x + WORLD_WIDTH) % WORLD_WIDTH;
+        y = (y + WORLD_HEIGHT) % WORLD_HEIGHT;
+
+        if(mob.canMove(this.getTileInDirection(mob.x,mob.y,dir)) 
+            && this.getActorAtTile(x,y) == null)
+            mob.slide(dir);
     }
+};
+
+World.prototype.getActorAtTile = function(x,y) {
+    
+    for(var i in this.actors)
+    {
+        var actor = this.actors[i];
+
+        if(actor.x == x && actor.y == y)
+            return actor;
+    }
+
+    return null;
 };
 
 World.prototype.getTileInDirection = function(x,y,dir) {

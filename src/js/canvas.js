@@ -1,4 +1,6 @@
 var TileImage = require('./tile-image');
+var Player = require('./backend/player');
+var Npc = require('./backend/npc');
 
 const TILES_ACROSS = 16;
 const TILES_DOWN = 9;
@@ -110,8 +112,10 @@ Canvas.prototype.redraw = function(actors) {
                 );
             }
 
+            this.checkForDrawableActor(actors,worldX, worldY,x,y,xOffset,yOffset,tileSize);
         }
     }
+
 
     this.ctx.drawImage(
         this.images.actors.player[actors[0].dir].image,
@@ -121,6 +125,43 @@ Canvas.prototype.redraw = function(actors) {
     );
 
 }
+
+Canvas.prototype.checkForDrawableActor = function(actors, worldX, worldY, x, y, xOffset, yOffset, tileSize) {
+
+    var actor = null;
+
+    for(var i in actors)
+    {
+        if(actors[i].x == worldX && actors[i].y == worldY)
+        {
+            actor = actors[i];
+            break;
+        }
+    }
+
+    if(actor != null && !(actor instanceof Player))
+    {
+        var image = this.getImageForActor(actor);
+
+        this.ctx.drawImage(
+            image,
+            x*tileSize - xOffset,
+            y*tileSize - yOffset,
+            tileSize, tileSize
+        );
+    }
+};
+
+Canvas.prototype.getImageForActor = function(actor) {
+
+        if(actor instanceof Npc) 
+        {
+            if(actor.gender == 'female')
+                return this.images.actors.npcs.female[actor.dir].image;
+        }
+
+        return this.images.actors.player[actor.dir].image;
+};
 
 Canvas.prototype.loadImages = function() {
 
@@ -134,19 +175,24 @@ Canvas.prototype.loadImages = function() {
 
     TileImage.callback = function(){
         numLoaded++;
-        if (numLoaded == 6)
+        if (numLoaded == 10)
         {
             self.imagesLoaded = true;
             self.redraw();
         }
     }
 
-    this.images.actors.player = {}
+    this.images.actors.player = {};
+    this.images.actors.npcs = {};
+    this.images.actors.npcs.female = {};
 
     var dirs = ['up','down','left','right'];
 
     for(i in dirs)
+    {
         this.images.actors.player[dirs[i]] = new TileImage(ACTOR_DIR + 'player/'+dirs[i]+'.png');
+        this.images.actors.npcs.female[dirs[i]] = new TileImage(ACTOR_DIR + 'npcs/female/'+dirs[i]+'.png');
+    }
 
     this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
     this.images.bgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
