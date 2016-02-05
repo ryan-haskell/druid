@@ -17,6 +17,9 @@ var Input = function(element) {
         window.onkeydown = function(event){
             self.onKeyDown(event.keyCode);
         };
+        canvas.onmousedown = function(event){
+            self.onMouseDown(event);
+        }
     }
 };
 
@@ -30,6 +33,10 @@ Input.prototype.initState = function() {
         right: false
     };
 
+    this.state.interact = false;
+
+    this.state.click = {};
+    this.state.click.processed = true;
 };
 
 Input.prototype.onKeyDown = function(keyCode) {
@@ -38,6 +45,16 @@ Input.prototype.onKeyDown = function(keyCode) {
 
 Input.prototype.onKeyUp = function(keyCode) {
     this.setKeyState(keyCode, false);
+};
+
+Input.prototype.onMouseDown = function(event) {
+    this.state.click.processed = false;
+    this.state.click.x = event.offsetX;
+    this.state.click.y = event.offsetY;
+};
+
+Input.prototype.resetMouseDown = function(){
+    this.state.click.processed = true;
 };
 
 Input.prototype.setKeyState = function(keyCode, value) {
@@ -53,6 +70,9 @@ Input.prototype.setKeyState = function(keyCode, value) {
             return;
         case 68: case 39: // d
             this.state.move.right = value;
+
+        case 32:
+            this.state.interact = value;
             return;
     }
 };

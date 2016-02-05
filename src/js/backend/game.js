@@ -29,6 +29,13 @@ Game.prototype.step = function() {
     //  1: Handle input
     var state = this.input.state;
 
+    if(!state.click.processed)
+    {
+        var click = this.canvas.getTileOnCanvas(state.click.x, state.click.y);
+        state.click.x = click.x;
+        state.click.y = click.y;
+    }
+
     //  2: Update world
     this.world.updateActors(state);
 

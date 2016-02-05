@@ -157,8 +157,20 @@ World.prototype.getActors = function() {
 
 
 World.prototype.updateActors = function(state) {
+    
+    if(!state.click.processed)
+    {
+        state.click.processed = true;
+        console.log(state.click.x, state.click.y);
+    }
+
     this.attemptPlayerMove(state);
 
+    if(state.interact)
+        this.attemptPlayerInteract();
+
+
+    // Let npcs act
     for(var i in this.actors)
     {
         var actor = this.actors[i];
@@ -181,6 +193,26 @@ World.prototype.attemptPlayerMove = function(state) {
     }
 };
 
+World.prototype.attemptPlayerInteract = function() {
+
+    var player = this.player;
+    var loc = this.getLocationInDirection(player.x,player.y,player.dir);
+
+    var actor = this.getActorAtLocation(loc.x,loc.y);
+
+    if(actor != null)
+    {
+        if(actor instanceof Npc) {
+
+            actor.dir = (player.dir == 'up') ? 'down' :
+                        (player.dir == 'down') ? 'up':
+                        (player.dir == 'left') ?'right' : 'left';
+
+        };
+
+    }
+};
+
 World.prototype.movePlayer = function(dir) {
     var player = this.player;
 
@@ -200,12 +232,12 @@ World.prototype.moveMob = function(mob,dir) {
         y = (y + WORLD_HEIGHT) % WORLD_HEIGHT;
 
         if(mob.canMove(this.getTileInDirection(mob.x,mob.y,dir)) 
-            && this.getActorAtTile(x,y) == null)
+            && this.getActorAtLocation(x,y) == null)
             mob.slide(dir);
     }
 };
 
-World.prototype.getActorAtTile = function(x,y) {
+World.prototype.getActorAtLocation = function(x,y) {
     
     for(var i in this.actors)
     {
@@ -222,14 +254,24 @@ World.prototype.getTileInDirection = function(x,y,dir) {
 
     var bgTiles = this.map.bg;
 
+    var tileLoc = this.getLocationInDirection(x,y,dir);
+
+    return this.map.bg[tileLoc.y][tileLoc.x];
+};
+
+World.prototype.getLocationInDirection = function(x,y,dir) {
+
     var tileX = (dir == 'left') ? x-1 : (dir == 'right') ? x + 1 : x;
     var tileY = (dir == 'up') ? y-1 : (dir == 'down') ? y + 1 : y;
 
     tileX = (tileX + WORLD_WIDTH) % WORLD_WIDTH;
     tileY = (tileY + WORLD_HEIGHT) % WORLD_HEIGHT;
 
-    return this.map.bg[tileY][tileX];
-};
+    return {
+        x: tileX,
+        y: tileY
+    };
+}
 
 World.prototype.getTileNeighbors = function(x,y){
 

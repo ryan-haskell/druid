@@ -69,12 +69,12 @@ Canvas.prototype.redraw = function(actors) {
     var leftX = (px - parseInt((PIXELS_ACROSS - tileSize)/2) + WORLD_WIDTH*tileSize) % (WORLD_WIDTH*tileSize);
     var topY = (py - parseInt((PIXELS_DOWN - tileSize)/2) + WORLD_HEIGHT*tileSize) % (WORLD_HEIGHT*tileSize);
 
-    var leftTileX = parseInt(leftX / tileSize);
-    var topTileY = parseInt(topY / tileSize);
+    this.leftTileX = parseInt(leftX / tileSize);
+    this.topTileY = parseInt(topY / tileSize);
 
     //  Determine offset of screen
-    var xOffset = leftX % tileSize;
-    var yOffset = topY % tileSize;
+    this.xOffset = leftX % tileSize;
+    this.yOffset = topY % tileSize;
 
     //  Allow buffering of tiles on side
     var buffer = 1;
@@ -86,8 +86,8 @@ Canvas.prototype.redraw = function(actors) {
     for(var y = -buffer; y < TILES_DOWN + buffer; y++) {
         for(var x = -buffer; x < TILES_ACROSS + buffer; x++) { //  TODO: Fix TA + 1 to allow noneven tileacross values
 
-            var worldY = (topTileY + y + WORLD_HEIGHT) % WORLD_HEIGHT;
-            var worldX = (leftTileX + x + WORLD_WIDTH) % WORLD_WIDTH;
+            var worldY = (this.topTileY + y + WORLD_HEIGHT) % WORLD_HEIGHT;
+            var worldX = (this.leftTileX + x + WORLD_WIDTH) % WORLD_WIDTH;
 
             var tile = bgTiles[worldY][worldX];
 
@@ -99,16 +99,16 @@ Canvas.prototype.redraw = function(actors) {
                     image, 
                     tile.sx, tile.sy, 
                     TILE_SIZE, TILE_SIZE,
-                    x*tileSize - xOffset,
-                    y*tileSize - yOffset,
+                    x*tileSize - this.xOffset,
+                    y*tileSize - this.yOffset,
                     tileSize, tileSize
                 );
             }
             else {
                 this.ctx.drawImage(
                     image,
-                    x*tileSize - xOffset,
-                    y*tileSize - yOffset,
+                    x*tileSize - this.xOffset,
+                    y*tileSize - this.yOffset,
                     tileSize, tileSize
                 );
             }
@@ -117,8 +117,8 @@ Canvas.prototype.redraw = function(actors) {
                 worldToCanvas[worldY] = [];
 
             worldToCanvas[worldY][worldX] = {
-                x: x*tileSize - xOffset,
-                y: y*tileSize - yOffset
+                x: x*tileSize - this.xOffset,
+                y: y*tileSize - this.yOffset
             };
 
         }
@@ -159,30 +159,14 @@ Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
         );
 };
 
-Canvas.prototype.checkForDrawableActor = function(actors, worldX, worldY, x, y, xOffset, yOffset, tileSize) {
+Canvas.prototype.getTileOnCanvas = function(x, y) {
 
-    var actor = null;
+    var tileSize = this.scaledTileSize;
 
-    for(var i in actors)
-    {
-        if(actors[i].x == worldX && actors[i].y == worldY)
-        {
-            actor = actors[i];
-            break;
-        }
-    }
-
-    if(actor != null && !(actor instanceof Player))
-    {
-        var image = this.getImageForActor(actor);
-
-        this.ctx.drawImage(
-            image,
-            x*tileSize - xOffset,
-            y*tileSize - yOffset,
-            tileSize, tileSize
-        );
-    }
+    return {
+        x: (this.leftTileX + parseInt((x + this.xOffset)/tileSize) + WORLD_WIDTH) % WORLD_WIDTH,
+        y: (this.topTileY + parseInt((y + this.yOffset)/tileSize) + WORLD_HEIGHT) % WORLD_HEIGHT
+    };
 };
 
 Canvas.prototype.getImageForActor = function(actor) {
