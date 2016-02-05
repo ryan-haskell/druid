@@ -1,5 +1,6 @@
 
 var Actor = require('./actor');
+var Mob = require('./mob');
 var Npc = require('./npc');
 var Player = require('./player');
 var Tile = require('./tile');
@@ -141,8 +142,15 @@ World.prototype.plantTrees = function(tile,x,y) {
 }
 
 World.prototype.initActors = function() {
-    this.actors.push(new Npc(1,2,'down','spin','female'));
-    this.actors.push(new Npc(5,0,'down','wander','female'));
+
+    var tile = null;
+
+    for(var i = 0; i < 4; i++)
+    {
+        tile = this.getRandomWalkableTile();
+        this.actors.push(new Npc(tile.x,tile.y,'down','wander','female','Ms. #' + i));
+    }
+
 };
 
 World.prototype.initPlayer = function() {
@@ -161,7 +169,7 @@ World.prototype.updateActors = function(state) {
     if(!state.click.processed)
     {
         state.click.processed = true;
-        console.log(state.click.x, state.click.y);
+        this.getTileInfo(state.click.x, state.click.y);
     }
 
     this.attemptPlayerMove(state);
@@ -180,13 +188,31 @@ World.prototype.updateActors = function(state) {
     }
 };
 
+World.prototype.getTileInfo = function(x,y) {
+
+    var actor = this.getActorAtLocation(x,y);
+
+    if(actor != null) {
+        if(actor instanceof Npc)
+            console.log(actor.name);
+    };
+
+};
+
 World.prototype.attemptPlayerMove = function(state) {
     var move = state.move;
+    var player = this.player;
 
     for(i in move)
     {
         if(move[i] == true)
         {
+            //  Free interacting actor on move
+            if(player.interactingActor != null) {
+                player.interactingActor.isInteracting = false;
+                player.interactingActor = null;
+            }
+
             this.movePlayer(i);
             return;
         }
@@ -202,13 +228,21 @@ World.prototype.attemptPlayerInteract = function() {
 
     if(actor != null)
     {
-        if(actor instanceof Npc) {
+        if(actor instanceof Mob && actor.isMoving == false)
+            if(actor instanceof Npc) {
 
-            actor.dir = (player.dir == 'up') ? 'down' :
-                        (player.dir == 'down') ? 'up':
-                        (player.dir == 'left') ?'right' : 'left';
+                //  Prevent actor from acting
+                if(!actor.isInteracting)
+                {
+                    player.interactingActor = actor;
+                    actor.isInteracting = true;
+                }
 
-        };
+                actor.dir = (player.dir == 'up') ? 'down' :
+                            (player.dir == 'down') ? 'up':
+                            (player.dir == 'left') ?'right' : 'left';
+
+            }
 
     }
 };
@@ -230,6 +264,18 @@ World.prototype.moveMob = function(mob,dir) {
 
         x = (x + WORLD_WIDTH) % WORLD_WIDTH;
         y = (y + WORLD_HEIGHT) % WORLD_HEIGHT;
+
+        //  Check if another actor is currently moving to that tile
+        var actor;
+
+        for(var i in this.actors)
+        {
+            actor = this.actors[i];
+
+            if(actor.isMoving && 
+                this.getTileInDirection(actor.x,actor.y,actor.dir) == this.getTileInDirection(mob.x,mob.y,mob.dir))
+                return;
+        }
 
         if(mob.canMove(this.getTileInDirection(mob.x,mob.y,dir)) 
             && this.getActorAtLocation(x,y) == null)
@@ -283,5 +329,23 @@ World.prototype.getTileNeighbors = function(x,y){
 
     return tiles;
 };
+
+World.prototype.getRandomWalkableTile = function() {
+
+    var maxAttempts = 50;
+
+    for(var i = 0; i < maxAttempts; i++) {
+
+        var x = parseInt(Math.random()*WORLD_WIDTH);
+        var y = parseInt(Math.random()*WORLD_HEIGHT);
+
+        var tile = this.map.bg[y][x];
+
+        if(tile.walkable)
+            return {
+                x: x, y: y
+            };
+    };
+}
 
 module.exports = World;

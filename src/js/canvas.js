@@ -129,20 +129,23 @@ Canvas.prototype.redraw = function(actors) {
 };
 
 Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
+    
+    var actor,canvasLoc,actorLoc,xOffset,yOffset,x,y;
+
     for(var i in actors)
     {
-        var actor = actors[i];
+        actor = actors[i];
 
         if(worldToCanvas[actor.y] == null || worldToCanvas[actor.y][actor.x] == null)
             continue;
 
-        var canvasLoc = worldToCanvas[actor.y][actor.x];
-        var actorLoc = actor.getLocation(tileSize);
-        var xOffset = actor.x*tileSize - actorLoc.x;
-        var yOffset = actor.y*tileSize - actorLoc.y;
+        canvasLoc = worldToCanvas[actor.y][actor.x];
+        actorLoc = actor.getLocation(tileSize);
+        xOffset = actor.x*tileSize - actorLoc.x;
+        yOffset = actor.y*tileSize - actorLoc.y;
 
-        var x = canvasLoc.x - xOffset;
-        var y = canvasLoc.y - yOffset;
+        x = canvasLoc.x - xOffset;
+        y = canvasLoc.y - yOffset;
 
         this.renderActor(actor, x, y, tileSize);
     }

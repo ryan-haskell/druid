@@ -1,10 +1,11 @@
 var Mob = require('./mob');
 
-var Npc = function(x, y, dir, moveType, gender) {
+var Npc = function(x, y, dir, moveType, gender, name) {
     Mob.call(this,x,y,dir);
     this.moveType = moveType == null ? 'stand' : moveType;
     this.gender = gender == null ? 'male' : gender;
-    this.inDialogue = false;
+    this.name = name == null ? 'Default':  name;
+    this.isInteracting = false;
 };
 
 Npc.prototype = Object.create(Mob.prototype);
@@ -12,20 +13,17 @@ Npc.prototype.constructor = Npc;
 
 Npc.prototype.act = function(world){
 
-    this.world = world;
-
-    if(!this.inDialogue)
+    if(!this.isInteracting)
     {
         switch(this.moveType) {
             case 'stand':
-                this.stand();
                 break;
             case 'spin':
                 this.spin();
                 break;
             case 'wander':
                 this.spin();
-                this.walk();
+                this.walk(world);
                 break;
             default:
                 return;
@@ -33,28 +31,27 @@ Npc.prototype.act = function(world){
     }
 };
 
-Npc.prototype.stand = function() {
-    //  Do nothing for now...
-};
-
 Npc.prototype.spin = function() {
     
-    var dirs = ['up', 'down', 'left', 'right'];
-    var rand = parseInt(Math.random()*20*FPS);
-
-    if(rand < 4)
+    if(!this.isMoving)
     {
-        this.dir = dirs[rand];
+        var dirs = ['up', 'down', 'left', 'right'];
+        var rand = parseInt(Math.random()*5*FPS);
+
+        if(rand < 4)
+        {
+            this.dir = dirs[rand];
+        }
     }
 };
 
-Npc.prototype.walk = function() {
+Npc.prototype.walk = function(world) {
     
-    var rand = parseInt(Math.random()*5*FPS);
+    var rand = parseInt(Math.random()*3*FPS);
 
     if(rand < 1)
     {
-        this.world.moveMob(this,this.dir);
+        world.moveMob(this,this.dir);
     }
 };
 
