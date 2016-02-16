@@ -196,6 +196,13 @@ Canvas.prototype.getImageForActor = function(actor) {
         {
             var animationOffset = 0;
 
+            var dir = actor.dir;
+            var directionOffset = 
+                (dir == 'up') ? 0 : 
+                (dir == 'down') ? 1 :
+                (dir == 'left') ? 2: 3;
+
+
             if(actor.isMoving)
                 animationOffset = 
                     (actor.currentSlideSteps > 0 && actor.currentSlideSteps < 6) ? 1 :
@@ -204,13 +211,13 @@ Canvas.prototype.getImageForActor = function(actor) {
             return {
                 image: this.images.actors.player[actor.dir].image,
                 isSubImage: true,
-                sy: 0,
+                sy: TILE_SIZE * directionOffset,
                 sx: TILE_SIZE * animationOffset
             };
 
         }
 
-        return this.images.actors.player[actor.dir].image;
+        return this.images.actors.player.image;
 };
 
 Canvas.prototype.loadImages = function() {
@@ -225,20 +232,19 @@ Canvas.prototype.loadImages = function() {
 
     TileImage.callback = function(){
         numLoaded++;
-        if (numLoaded == 11)
+        if (numLoaded == 8)
         {
             self.imagesLoaded = true;
             self.redraw();
         }
     }
 
-    this.images.actors.player = {};
     this.images.actors.npcs = {};
     this.images.actors.npcs.female = {};
 
     for(i in DIRS)
     {
-        this.images.actors.player[DIRS[i]] = new TileImage(ACTOR_DIR + 'player/'+DIRS[i]+'.png');
+        this.images.actors.player = new TileImage(ACTOR_DIR + 'player.png');
         this.images.actors.npcs.female[DIRS[i]] = new TileImage(ACTOR_DIR + 'npcs/female/'+DIRS[i]+'.png');
     }
 
