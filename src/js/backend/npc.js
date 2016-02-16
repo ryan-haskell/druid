@@ -1,4 +1,5 @@
 var Mob = require('./mob');
+var Dialogue = require('./dialogue');
 
 var femaleNames = ['Rebecca','Caroline', 'Jennifer', 'Elizabeth', 'Lisa', 'Elaine', 'Rosie'];
 
@@ -8,6 +9,7 @@ var Npc = function(x, y, dir, moveType, gender, name) {
     this.gender = gender == null ? 'male' : gender;
     this.setName(name);
     this.isInteracting = false;
+    this.dialogue = new Dialogue(this);
 };
 
 Npc.prototype = Object.create(Mob.prototype);
@@ -22,7 +24,6 @@ Npc.prototype.setName = function(name){
         var index = parseInt(Math.random()*femaleNames.length);
         this.name = femaleNames[index];
         femaleNames.splice(index,1);
-        console.log(femaleNames);
     }
 };
 
@@ -68,6 +69,17 @@ Npc.prototype.walk = function(world) {
     {
         world.moveMob(this,this.dir);
     }
+};
+
+Npc.prototype.printDialogue = function(){
+    
+    var message = this.dialogue.getMessage();
+    
+    //  Temporary console dialogue
+    console.log(message.text);
+
+    for(i in message.responses)
+        console.log( (parseInt(i)+1) + ': ' + message.responses[i].text);
 };
 
 module.exports = Npc;

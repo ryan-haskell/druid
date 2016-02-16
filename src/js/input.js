@@ -35,6 +35,9 @@ Input.prototype.initState = function() {
 
     this.state.interact = false;
 
+    this.state.numberPressed = null;
+    this.state.numberReleased = true;
+
     this.state.click = {};
     this.state.click.processed = true;
 };
@@ -70,9 +73,18 @@ Input.prototype.setKeyState = function(keyCode, value) {
             return;
         case 68: case 39: // d
             this.state.move.right = value;
-
+            return;
         case 32:
             this.state.interact = value;
+            return;
+        case 49: case 50: case 51:
+
+            if(value && this.state.numberReleased)
+                this.state.numberPressed = keyCode - 48;
+            else {
+                this.state.numberReleased = true;
+            }
+
             return;
     }
 };

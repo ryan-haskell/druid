@@ -31,7 +31,7 @@ World.prototype.generateRandomMap = function(){
         tiles[y] = [];
         for(var x = 0; x < WORLD_WIDTH; x++) {
 
-            var type = (parseInt(Math.random() * 3)) ? 'grass' : 'water';
+            var type = (parseInt(Math.random() * 5)) ? 'grass' : 'water';
 
             tiles[y][x] = new Tile(type);
         }
@@ -179,6 +179,11 @@ World.prototype.updateActors = function(state) {
     if(state.interact)
         this.attemptPlayerInteract();
 
+    if(this.player.interactingActor != null && state.numberReleased)
+    {
+        this.player.respond(state.numberPressed);
+        state.numberPressed = null;
+    }
 
     // Let npcs act
     for(var i in this.actors)
@@ -235,10 +240,7 @@ World.prototype.attemptPlayerInteract = function() {
 
                 //  Prevent actor from acting
                 if(!actor.isInteracting)
-                {
-                    player.interactingActor = actor;
-                    actor.isInteracting = true;
-                }
+                    player.interactWith(actor);
 
                 actor.dir = (player.dir == 'up') ? 'down' :
                             (player.dir == 'down') ? 'up':
