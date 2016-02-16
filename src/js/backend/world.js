@@ -37,6 +37,8 @@ World.prototype.generateRandomMap = function(){
         }
     }
 
+    tiles[0][0] = new Tile('grass');
+
     this.addWorldDetails();
 };
 
@@ -148,7 +150,7 @@ World.prototype.initActors = function() {
     for(var i = 0; i < 4; i++)
     {
         tile = this.getRandomWalkableTile();
-        this.actors.push(new Npc(tile.x,tile.y,'down','wander','female','Ms. #' + i));
+        this.actors.push(new Npc(tile.x,tile.y,'down','wander','female'));
     }
 
 };
@@ -321,11 +323,10 @@ World.prototype.getLocationInDirection = function(x,y,dir) {
 
 World.prototype.getTileNeighbors = function(x,y){
 
-    var dirs = ['up','down','left','right'];
     var tiles = [];
 
-    for(var i in dirs)
-        tiles.push( this.getTileInDirection(x,y,dirs[i]) );
+    for(var i in DIRS)
+        tiles.push( this.getTileInDirection(x,y,DIRS[i]) );
 
     return tiles;
 };
@@ -341,7 +342,7 @@ World.prototype.getRandomWalkableTile = function() {
 
         var tile = this.map.bg[y][x];
 
-        if(tile.walkable)
+        if(tile.walkable && this.getActorAtLocation(x,y) == null)
             return {
                 x: x, y: y
             };

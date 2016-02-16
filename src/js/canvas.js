@@ -2,8 +2,8 @@ var TileImage = require('./tile-image');
 var Player = require('./backend/player');
 var Npc = require('./backend/npc');
 
-const TILES_ACROSS = 16;
-const TILES_DOWN = 9;
+const TILES_ACROSS = 32;
+const TILES_DOWN = 18;
 
 const ACTOR_DIR = 'actors/';
 const BGTILE_DIR = 'bgTiles/';
@@ -154,12 +154,25 @@ Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
 Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
         var image = this.getImageForActor(actor);
 
-        this.ctx.drawImage(
-            image,
-            x,
-            y,
-            tileSize, tileSize
-        );
+        if(image.isSubImage != null)
+        {
+            this.ctx.drawImage(
+                image.image,
+                image.sx, image.sy,
+                TILE_SIZE, TILE_SIZE,
+                x,y,
+                tileSize,tileSize
+            );
+        }
+        else 
+        {
+            this.ctx.drawImage(
+                image,
+                x,
+                y,
+                tileSize, tileSize
+            );
+        }
 };
 
 Canvas.prototype.getTileOnCanvas = function(x, y) {
@@ -179,6 +192,23 @@ Canvas.prototype.getImageForActor = function(actor) {
             if(actor.gender == 'female')
                 return this.images.actors.npcs.female[actor.dir].image;
         }
+        else if(actor instanceof Player)
+        {
+            var animationOffset = 0;
+
+            if(actor.isMoving)
+                animationOffset = 
+                    (actor.currentSlideSteps > 0 && actor.currentSlideSteps < 6) ? 1 :
+                    (actor.currentSlideSteps > 8 && actor.currentSlideSteps < 14) ? 2 : 0;
+
+            return {
+                image: this.images.actors.player[actor.dir].image,
+                isSubImage: true,
+                sy: 0,
+                sx: TILE_SIZE * animationOffset
+            };
+
+        }
 
         return this.images.actors.player[actor.dir].image;
 };
@@ -195,7 +225,7 @@ Canvas.prototype.loadImages = function() {
 
     TileImage.callback = function(){
         numLoaded++;
-        if (numLoaded == 10)
+        if (numLoaded == 11)
         {
             self.imagesLoaded = true;
             self.redraw();
@@ -206,12 +236,10 @@ Canvas.prototype.loadImages = function() {
     this.images.actors.npcs = {};
     this.images.actors.npcs.female = {};
 
-    var dirs = ['up','down','left','right'];
-
-    for(i in dirs)
+    for(i in DIRS)
     {
-        this.images.actors.player[dirs[i]] = new TileImage(ACTOR_DIR + 'player/'+dirs[i]+'.png');
-        this.images.actors.npcs.female[dirs[i]] = new TileImage(ACTOR_DIR + 'npcs/female/'+dirs[i]+'.png');
+        this.images.actors.player[DIRS[i]] = new TileImage(ACTOR_DIR + 'player/'+DIRS[i]+'.png');
+        this.images.actors.npcs.female[DIRS[i]] = new TileImage(ACTOR_DIR + 'npcs/female/'+DIRS[i]+'.png');
     }
 
     this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');

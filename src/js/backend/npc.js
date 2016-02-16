@@ -1,15 +1,30 @@
 var Mob = require('./mob');
 
+var femaleNames = ['Rebecca','Caroline', 'Jennifer', 'Elizabeth', 'Lisa', 'Elaine', 'Rosie'];
+
 var Npc = function(x, y, dir, moveType, gender, name) {
     Mob.call(this,x,y,dir);
     this.moveType = moveType == null ? 'stand' : moveType;
     this.gender = gender == null ? 'male' : gender;
-    this.name = name == null ? 'Default':  name;
+    this.setName(name);
     this.isInteracting = false;
 };
 
 Npc.prototype = Object.create(Mob.prototype);
 Npc.prototype.constructor = Npc;
+
+
+Npc.prototype.setName = function(name){
+    if(name != null)
+        this.name = name;
+    else if (this.gender == 'female' && femaleNames.length > 0)
+    {
+        var index = parseInt(Math.random()*femaleNames.length);
+        this.name = femaleNames[index];
+        femaleNames.splice(index,1);
+        console.log(femaleNames);
+    }
+};
 
 Npc.prototype.act = function(world){
 

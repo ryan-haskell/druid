@@ -1,6 +1,6 @@
 var Actor = require('./actor');
 
-const MS_PER_UPDATE = 240;
+const MS_PER_UPDATE = 300;
 
 var Mob = function(x,y,dir) {
     
