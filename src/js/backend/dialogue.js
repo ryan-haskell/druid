@@ -31,7 +31,13 @@ var Dialogue = function(npc) {
 };
 
 Dialogue.prototype.getMessage = function(){
-    return this.messages[this.position];
+
+    var message = this.messages[this.position];
+
+    if(message.route != null)
+        this.position = message.route;
+
+    return message;
 };
 
 Dialogue.prototype.respond = function(responseIndex) {
