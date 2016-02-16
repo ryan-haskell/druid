@@ -1,9 +1,10 @@
 var TileImage = require('./tile-image');
 var Player = require('./backend/player');
 var Npc = require('./backend/npc');
+var Mob = require('./backend/mob');
 
-const TILES_ACROSS = 32;
-const TILES_DOWN = 18;
+const TILES_ACROSS = 16;
+const TILES_DOWN = 9;
 
 const ACTOR_DIR = 'actors/';
 const BGTILE_DIR = 'bgTiles/';
@@ -187,29 +188,34 @@ Canvas.prototype.getTileOnCanvas = function(x, y) {
 
 Canvas.prototype.getImageForActor = function(actor) {
 
-        if(actor instanceof Npc) 
+        if(actor instanceof Mob)
         {
-            if(actor.gender == 'female')
-                return this.images.actors.npcs.female[actor.dir].image;
-        }
-        else if(actor instanceof Player)
-        {
-            var animationOffset = 0;
-
+            // Set the right direction
             var dir = actor.dir;
             var directionOffset = 
                 (dir == 'up') ? 0 : 
                 (dir == 'down') ? 1 :
                 (dir == 'left') ? 2: 3;
 
+            //  Get the right animation frame
+            var animationOffset = 0;
 
             if(actor.isMoving)
                 animationOffset = 
                     (actor.currentSlideSteps > 0 && actor.currentSlideSteps < 6) ? 1 :
                     (actor.currentSlideSteps > 8 && actor.currentSlideSteps < 14) ? 2 : 0;
 
+            //  Pull the right image
+            var image = this.images.actors.player.image;
+
+            if(actor instanceof Npc)
+            {
+                if(actor.gender == 'female')
+                    image = this.images.actors.npcs.female.image;
+            }
+
             return {
-                image: this.images.actors.player[actor.dir].image,
+                image: image,
                 isSubImage: true,
                 sy: TILE_SIZE * directionOffset,
                 sx: TILE_SIZE * animationOffset
@@ -232,7 +238,7 @@ Canvas.prototype.loadImages = function() {
 
     TileImage.callback = function(){
         numLoaded++;
-        if (numLoaded == 8)
+        if (numLoaded == 5)
         {
             self.imagesLoaded = true;
             self.redraw();
@@ -245,7 +251,7 @@ Canvas.prototype.loadImages = function() {
     for(i in DIRS)
     {
         this.images.actors.player = new TileImage(ACTOR_DIR + 'player.png');
-        this.images.actors.npcs.female[DIRS[i]] = new TileImage(ACTOR_DIR + 'npcs/female/'+DIRS[i]+'.png');
+        this.images.actors.npcs.female = new TileImage(ACTOR_DIR + 'npcs/female.png');
     }
 
     this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
