@@ -4,9 +4,10 @@
   "devDependencies": {
     "browserify": "^13.0.0",
     "gulp": "^3.9.0",
-    "gulp-sass": "^2.1.1",
     "jquery": "^2.2.0",
-    "page": "^1.6.4",
     "vinyl-source-stream": "^1.1.0"
+  },
+  "dependencies": {
+    "express": "^4.13.4"
   }
 }
