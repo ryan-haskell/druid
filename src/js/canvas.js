@@ -51,9 +51,11 @@ Canvas.prototype.redraw = function(actors) {
     if(!this.imagesLoaded || actors == null) 
         return;
 
-    this.ctx.imageSmoothingEnabled = false;
-    this.ctx.mozImageSmoothingEnabled = false;
-    this.ctx.webkitImageSmoothingEnabled = false;
+    if(this.ctx.imageSmoothingEnabled != null)
+        this.ctx.imageSmoothingEnabled = false;
+    else if(this.ctx.mozImageSmoothingEnabled != null)
+        this.ctx.mozImageSmoothingEnabled = false;
+    else this.ctx.webkitImageSmoothingEnabled = false;
 
 
     var tileSize = this.scaledTileSize;

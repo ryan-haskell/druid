@@ -29,8 +29,6 @@ Map.prototype.generateRandomMap = function(){
 };
 
 Map.prototype.addWorldDetails = function() {
-
-
     for(var y = 0; y < WORLD_HEIGHT; y++) {
         for(var x = 0; x < WORLD_WIDTH; x++) {
 
