@@ -10,6 +10,8 @@ const ACTOR_DIR = 'actors/';
 const BGTILE_DIR = 'bgTiles/';
 const FGTILE_DIR = 'fgTiles/';
 
+// Canvas - constructor
+// @param {Map} map - map of the game world.
 var Canvas = function(map){
     this.map = map;
 
@@ -22,6 +24,7 @@ var Canvas = function(map){
     this.loadImages();
 };
 
+// setCanvasDimensions - adds listener for window resize, and calls resizeCanvas
 Canvas.prototype.setCanvasDimensions = function() {
     var self = this;
     window.addEventListener('resize', function(){
@@ -30,6 +33,41 @@ Canvas.prototype.setCanvasDimensions = function() {
     self.resizeCanvas();
 };
 
+// loadImages - loads all images for the game.
+Canvas.prototype.loadImages = function() {
+
+    var self = this;
+
+    var numLoaded = 0;
+
+    TileImage.callback = function(){
+        numLoaded++;
+        if (numLoaded == 5)
+        {
+            self.imagesLoaded = true;
+            self.redraw();
+        }
+    };
+
+    //  Initialize images structure
+    this.images = {};
+    this.images.actors = {};
+    this.images.bgTiles = {};
+    this.images.actors.npcs = {};
+    this.images.actors.npcs.female = {};
+
+    // Load actor images
+    this.images.actors.player = new TileImage(ACTOR_DIR + 'player.png');
+    this.images.actors.npcs.female = new TileImage(ACTOR_DIR + 'npcs/female.png');
+
+    // Load background tile images
+    this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
+    this.images.bgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
+    this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
+
+};
+
+// resizeCanvas - resizes the canvas based on window dimensions
 Canvas.prototype.resizeCanvas = function() {
     var width = (window.innerWidth);
     var height = (window.innerHeight);
@@ -45,6 +83,8 @@ Canvas.prototype.resizeCanvas = function() {
     this.canvas.height = TILES_DOWN * this.scaledTileSize;
 };
 
+// redraw - renders visible world around player
+// @param {Actor[]} actors - array of all actors in game.
 Canvas.prototype.redraw = function(actors) {
 
     if(!this.imagesLoaded || actors == null) 
@@ -122,10 +162,11 @@ Canvas.prototype.redraw = function(actors) {
         }
     }
 
-    this.renderActors(actors, worldToCanvas,tileSize);
+    this.renderActors(actors, worldToCanvas, tileSize);
 
 };
 
+// disableImageSmoothing - prevents pixel art from become blurred.
 Canvas.prototype.disableImageSmoothing = function(){
     if(this.ctx.imageSmoothingEnabled != null)
         this.ctx.imageSmoothingEnabled = false;
@@ -134,6 +175,10 @@ Canvas.prototype.disableImageSmoothing = function(){
     else this.ctx.webkitImageSmoothingEnabled = false;
 };
 
+// renderActors - draws actors to canvas
+// @param {Actor[]} actors - actors to draw on canvas.
+// @param {Location[][]} worldToCanvas - mapping from actual world coordinates to canvas coordinates.
+// @param {int} tileSize - size of a tile on the screen.
 Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
     
     var actor,canvasLoc,actorLoc,xOffset,yOffset,x,y;
@@ -157,7 +202,12 @@ Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
     }
 };
 
-Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
+// renderActor - draws an actor at a location
+// @param {Actor} actor - actor to draw on canvas.
+// @param {int} x - x coordinate to draw at.
+// @param {int} y - y coordinate to draw at.
+// @param {int} size - size of actor.
+Canvas.prototype.renderActor = function(actor, x, y, size) {
         var image = this.getImageForActor(actor);
 
         if(image.isSubImage != null)
@@ -167,7 +217,7 @@ Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
                 image.sx, image.sy,
                 TILE_SIZE, TILE_SIZE,
                 x,y,
-                tileSize,tileSize
+                size,size
             );
         }
         else 
@@ -176,11 +226,15 @@ Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
                 image,
                 x,
                 y,
-                tileSize, tileSize
+                size, size
             );
         }
 };
 
+// getTileOnCanvas - gets tile location given canvas coordinates
+// @param {int} x - x coordinate on canvas.
+// @param {int} y - y coordinate on canvas.
+// @return {Location} - the location of the tile.
 Canvas.prototype.getTileOnCanvas = function(x, y) {
 
     var tileSize = this.scaledTileSize;
@@ -191,18 +245,21 @@ Canvas.prototype.getTileOnCanvas = function(x, y) {
     };
 };
 
+// getImageForActor - gets the correct image for an actor
+// @param {Actor} actor - the actor to get an image for.
+// @return {Image} - an object containing image and image metadata.
 Canvas.prototype.getImageForActor = function(actor) {
 
         if(actor instanceof Mob)
         {
-            // Set the right direction
+            // Set the correct direction
             var dir = actor.dir;
             var directionOffset = 
                 (dir == 'up') ? 0 : 
                 (dir == 'down') ? 1 :
                 (dir == 'left') ? 2: 3;
 
-            //  Get the right animation frame
+            //  Get the correct animation frame
             var animationOffset = 0;
 
             if(actor.isMoving)
@@ -210,7 +267,7 @@ Canvas.prototype.getImageForActor = function(actor) {
                     (actor.currentSlideSteps > 0 && actor.currentSlideSteps < 6) ? 1 :
                     (actor.currentSlideSteps > 8 && actor.currentSlideSteps < 14) ? 2 : 0;
 
-            //  Pull the right image
+            //  Pull the correct image
             var image = this.images.actors.player.image;
 
             if(actor instanceof Npc)
@@ -229,40 +286,6 @@ Canvas.prototype.getImageForActor = function(actor) {
         }
 
         return this.images.actors.player.image;
-};
-
-Canvas.prototype.loadImages = function() {
-
-    var self = this;
-
-    this.images = {};
-    this.images.actors = {};
-    this.images.bgTiles = {};
-
-    var numLoaded = 0;
-
-    TileImage.callback = function(){
-        numLoaded++;
-        if (numLoaded == 5)
-        {
-            self.imagesLoaded = true;
-            self.redraw();
-        }
-    }
-
-    this.images.actors.npcs = {};
-    this.images.actors.npcs.female = {};
-
-    for(i in DIRS)
-    {
-        this.images.actors.player = new TileImage(ACTOR_DIR + 'player.png');
-        this.images.actors.npcs.female = new TileImage(ACTOR_DIR + 'npcs/female.png');
-    }
-
-    this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
-    this.images.bgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
-    this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
-
 };
 
 module.exports = Canvas;
