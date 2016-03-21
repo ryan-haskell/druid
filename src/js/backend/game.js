@@ -1,7 +1,7 @@
-var World = require('./world');
+var World = require('backend/world/world');
 
-var Canvas = require('../canvas');
-var Input = require('../input');
+var Canvas = require('canvas');
+var Input = require('input');
 
 const MS_PER_UPDATE = 1000/FPS;
 

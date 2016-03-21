@@ -1,10 +1,9 @@
-
-var Map = require('./map');
-var Actor = require('./actor');
-var Mob = require('./mob');
-var Npc = require('./npc');
-var Player = require('./player');
-var Tile = require('./tile');
+var Map = require('backend/world/map');
+var Actor = require('backend/actors/actor');
+var Mob = require('backend/actors/mob');
+var Npc = require('backend/actors/npc');
+var Player = require('backend/actors/player');
+var Tile = require('backend/world/tile');
 
 var World = function() {
     this.map = new Map();

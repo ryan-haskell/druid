@@ -1,7 +1,7 @@
-var TileImage = require('./tile-image');
-var Player = require('./backend/player');
-var Npc = require('./backend/npc');
-var Mob = require('./backend/mob');
+var TileImage = require('tile-image');
+var Player = require('backend/actors/player');
+var Npc = require('backend/actors/npc');
+var Mob = require('backend/actors/mob');
 
 const TILES_ACROSS = 16;
 const TILES_DOWN = 9;
@@ -35,12 +35,12 @@ Canvas.prototype.resizeCanvas = function() {
     var width = (window.innerWidth);
     var height = (window.innerHeight);
 
-    var maxScaleAcross =  parseInt(width / TILES_ACROSS / TILE_SIZE);
-    var maxScaleDown = parseInt(height / TILES_DOWN / TILE_SIZE);
+    var maxScaleAcross =  parseInt(width / TILES_ACROSS);
+    var maxScaleDown = parseInt(height / TILES_DOWN);
 
     //  Get the minimum scale for each dimension
     this.scale = (maxScaleDown < maxScaleAcross) ? maxScaleDown : maxScaleAcross;
-    this.scaledTileSize = this.scale * TILE_SIZE;
+    this.scaledTileSize = this.scale;
 
     this.canvas.width = TILES_ACROSS * this.scaledTileSize;
     this.canvas.height = TILES_DOWN * this.scaledTileSize;

@@ -1,4 +1,4 @@
-var Mob = require('./mob'); 
+var Mob = require('backend/actors/mob'); 
 
 var Player = function() {
     Mob.call(this, 0, 0);

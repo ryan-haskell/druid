@@ -1,4 +1,3 @@
-
 var Input = function(element) {
     
     // Initialize input state

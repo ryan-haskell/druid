@@ -15,7 +15,9 @@ gulp.task('JS', function() {
     gulp.src(paths.constants)
         .pipe(gulp.dest('dist/static'))
 
-    return browserify('./src/js/app.js')
+    browserify('./src/js/app.js', {
+        paths: ['./node_modules', './src/js']
+    })
         .bundle()
         .pipe(source('bundle.js'))
         .pipe(gulp.dest('./dist/static'));
@@ -40,7 +42,10 @@ gulp.task('css', function () {
     .pipe(gulp.dest('./dist/static'));
 });
 
-gulp.task('watch', function() {
+gulp.task('build', ['JS', 'HTML', 'images', 'css']);
+
+
+gulp.task('watch', ['build'], function() {
 
     gulp.watch(paths.html, ['HTML']);
     gulp.watch(paths.css, ['css']);
@@ -49,4 +54,6 @@ gulp.task('watch', function() {
 
 });
 
-gulp.task('default', ['watch', 'JS', 'HTML', 'images', 'css']);
+gulp.task('default', ['build']);
+
+

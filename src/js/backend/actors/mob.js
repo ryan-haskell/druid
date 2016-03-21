@@ -1,4 +1,4 @@
-var Actor = require('./actor');
+var Actor = require('backend/actors/actor');
 
 const MS_PER_UPDATE = 200;
 

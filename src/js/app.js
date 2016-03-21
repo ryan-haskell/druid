@@ -1,6 +1,5 @@
-var $ = require('jquery');
-var Game = require('./backend/game');
+var Game = require('backend/game');
 
-$(document).ready(function(){
+document.addEventListener('DOMContentLoaded', function(event){
 	new Game();
 });

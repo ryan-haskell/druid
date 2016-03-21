@@ -1,4 +1,4 @@
-var Tile = require('./tile');
+var Tile = require('backend/world/tile');
 
 var Map = function() {
     this.width = WORLD_WIDTH;

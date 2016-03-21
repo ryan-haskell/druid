@@ -1,13 +1,31 @@
 {
-  "title": "SimpleGulp",
+  "name": "druid",
   "version": "1.0.0",
+  "description": "A game I will never finish.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryannhg/druid.git"
+  },
+  "keywords": [
+    "druid",
+    "rpg",
+    "adventure"
+  ],
+  "author": "Ryan Haskell-Glatz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ryannhg/druid/issues"
+  },
+  "homepage": "https://github.com/ryannhg/druid#readme",
   "devDependencies": {
     "browserify": "^13.0.0",
-    "gulp": "^3.9.0",
-    "jquery": "^2.2.0",
+    "express": "^4.13.4",
+    "gulp": "^3.9.1",
     "vinyl-source-stream": "^1.1.0"
-  },
-  "dependencies": {
-    "express": "^4.13.4"
   }
 }

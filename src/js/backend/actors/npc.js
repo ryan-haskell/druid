@@ -1,5 +1,5 @@
-var Mob = require('./mob');
-var Dialogue = require('./dialogue');
+var Mob = require('backend/actors/mob');
+var Dialogue = require('backend/dialogue');
 
 var femaleNames = ['Rebecca','Caroline', 'Jennifer', 'Elizabeth', 'Lisa', 'Elaine', 'Rosie'];
 
