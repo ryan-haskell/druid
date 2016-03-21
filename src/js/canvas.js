@@ -11,7 +11,6 @@ const BGTILE_DIR = 'bgTiles/';
 const FGTILE_DIR = 'fgTiles/';
 
 var Canvas = function(map){
-
     this.map = map;
 
 	this.canvas = document.getElementById('canvas');
@@ -51,17 +50,13 @@ Canvas.prototype.redraw = function(actors) {
     if(!this.imagesLoaded || actors == null) 
         return;
 
-    if(this.ctx.imageSmoothingEnabled != null)
-        this.ctx.imageSmoothingEnabled = false;
-    else if(this.ctx.mozImageSmoothingEnabled != null)
-        this.ctx.mozImageSmoothingEnabled = false;
-    else this.ctx.webkitImageSmoothingEnabled = false;
-
+    this.disableImageSmoothing();
 
     var tileSize = this.scaledTileSize;
 
     //  Get player's x and y corner of screen
-    var playerLocation = actors[0].getLocation(tileSize);
+    var player = actors[0];
+    var playerLocation = player.getLocation(tileSize);
     var px = playerLocation.x;
     var py = playerLocation.y;
 
@@ -87,7 +82,7 @@ Canvas.prototype.redraw = function(actors) {
     var worldToCanvas = [];
 
     for(var y = -buffer; y < TILES_DOWN + buffer; y++) {
-        for(var x = -buffer; x < TILES_ACROSS + buffer; x++) { //  TODO: Fix TA + 1 to allow noneven tileacross values
+        for(var x = -buffer; x < TILES_ACROSS + buffer; x++) {
 
             var worldY = (this.topTileY + y + WORLD_HEIGHT) % WORLD_HEIGHT;
             var worldX = (this.leftTileX + x + WORLD_WIDTH) % WORLD_WIDTH;
@@ -129,6 +124,14 @@ Canvas.prototype.redraw = function(actors) {
 
     this.renderActors(actors, worldToCanvas,tileSize);
 
+};
+
+Canvas.prototype.disableImageSmoothing = function(){
+    if(this.ctx.imageSmoothingEnabled != null)
+        this.ctx.imageSmoothingEnabled = false;
+    else if(this.ctx.mozImageSmoothingEnabled != null)
+        this.ctx.mozImageSmoothingEnabled = false;
+    else this.ctx.webkitImageSmoothingEnabled = false;
 };
 
 Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
