@@ -93,6 +93,7 @@ module.exports = Mob;
 var Mob = require('backend/actors/mob');
 var Dialogue = require('backend/dialogue');
 
+var maleNames = ['Ryan','Scott', 'Harry', 'Nick', 'Dhruv', 'Ben', 'Steve'];
 var femaleNames = ['Rebecca','Caroline', 'Jennifer', 'Elizabeth', 'Lisa', 'Elaine', 'Rosie'];
 
 var Npc = function(x, y, dir, moveType, gender, name) {
@@ -116,6 +117,12 @@ Npc.prototype.setName = function(name){
         var index = parseInt(Math.random()*femaleNames.length);
         this.name = femaleNames[index];
         femaleNames.splice(index,1);
+    }
+    else if (this.gender == 'male' && maleNames.length > 0)
+    {
+        var index = parseInt(Math.random()*maleNames.length);
+        this.name = maleNames[index];
+        maleNames.splice(index,1);
     }
 };
 
@@ -324,40 +331,101 @@ var Map = function() {
     this.width = WORLD_WIDTH;
     this.height = WORLD_HEIGHT;
 
-    this.bg = [];
-    this.fg = [];
+    this.tiles = [];
 
-    this.generateRandomMap();
+    this.generateLandMap();
 };
 
-Map.prototype.generateRandomMap = function(){
-    var tiles = this.bg;
+// Land terrain generation
+Map.prototype.generateLandMap = function(){
 
-    for(var y = 0; y < WORLD_HEIGHT; y++) {
-        tiles[y] = [];
-        for(var x = 0; x < WORLD_WIDTH; x++) {
+    //  Fill world with grass
+    for(var y = 0; y < WORLD_HEIGHT; y++)
+    {
+        this.tiles[y] = [];
+        for(var x = 0; x < WORLD_WIDTH; x++)
+        {
+            var bg = 'grass';
+            var fg = null;
 
-            var type = (parseInt(Math.random() * 5)) ? 'grass' : 'water';
-
-            tiles[y][x] = new Tile(type);
+            this.tiles[y][x] = new Tile(bg, fg);
         }
     }
 
-    tiles[0][0] = new Tile('grass');
-
+    //  Plant forests
+    this.plantForests(2);
+    this.plantLakes(.5);
+    this.setSpawnArea();
     this.addWorldDetails();
+
+};
+
+Map.prototype.plantForests = function(forestPercentage) {
+
+    this.plant(forestPercentage, null, 'tree');
+
+};
+
+Map.prototype.plantLakes = function(lakePercentage) {
+
+    this.plant(lakePercentage, 'water', null);
+
+};
+
+Map.prototype.setSpawnArea = function(){
+
+    this.randomlySpread('grass', null, [{ x: 0, y: 0 }], 75, 1);
+
+}
+
+Map.prototype.plant = function(percentage, bg, fg) {
+
+    var numSeeds = parseInt(percentage*WORLD_WIDTH*WORLD_HEIGHT/100) + 1;
+
+    for(var i = 0; i < numSeeds; i++)
+    {
+        var location = {
+            x: parseInt(Math.random()*WORLD_WIDTH),
+            y: parseInt(Math.random()*WORLD_HEIGHT)
+        };
+
+        this.randomlySpread(bg, fg, [location], 75, 1);
+    }
+}
+
+Map.prototype.randomlySpread = function(bg, fg, locationQueue, spread, spreadReduction) {
+
+    while(locationQueue.length > 0)
+    {
+        var loc = locationQueue.shift();
+
+        bg = (bg == null) ? this.tiles[loc.y][loc.x].bg : bg;
+        this.tiles[loc.y][loc.x] = new Tile(bg, fg);
+
+        for(var dir in DIRS)
+        {
+            // 20% chance that 
+            var willSpread = parseInt(Math.random()*100);
+
+            if(willSpread < spread)
+            {
+                locationQueue.push(this.getLocationInDirection(loc.x, loc.y, DIRS[dir]));
+            }
+        }
+
+        spread -= spreadReduction;
+
+    }
 };
 
 Map.prototype.addWorldDetails = function() {
     for(var y = 0; y < WORLD_HEIGHT; y++) {
         for(var x = 0; x < WORLD_WIDTH; x++) {
 
-            var tile = this.bg[y][x];
+            var tile = this.tiles[y][x];
             
-            if(tile.type == 'water') 
+            if(tile.bg == 'water') 
                 this.addWaterEdges(tile,x,y);
-            else if(tile.type == 'grass')
-                this.plantTrees(tile,x,y);
 
         }
     }
@@ -377,7 +445,7 @@ Map.prototype.addWaterEdges = function(tile,x,y) {
     };
 
     for(var i in neighbors) {
-        if(neighbors[i].type == 'grass' || neighbors[i].type == 'tree')
+        if(neighbors[i].bg == 'grass')
         {
             numSides++;
             grassDirs[dirs[i]] = true;
@@ -435,18 +503,6 @@ Map.prototype.addWaterEdges = function(tile,x,y) {
     tile.sy *= TILE_SIZE;
 };
 
-Map.prototype.plantTrees = function(tile,x,y) {
-
-    var rand = parseInt(Math.random()*10);
-
-    if(rand == 0)
-    {
-        tile.type = 'tree';
-        tile.setWalkable(tile.type);
-    }
-
-};
-
 Map.prototype.getTileNeighbors = function(x,y){
 
     var tiles = [];
@@ -457,14 +513,11 @@ Map.prototype.getTileNeighbors = function(x,y){
     return tiles;
 };
 
-
 Map.prototype.getTileInDirection = function(x,y,dir) {
-
-    var bgTiles = this.bg;
 
     var tileLoc = this.getLocationInDirection(x,y,dir);
 
-    return this.bg[tileLoc.y][tileLoc.x];
+    return this.tiles[tileLoc.y][tileLoc.x];
 };
 
 Map.prototype.getLocationInDirection = function(x,y,dir) {
@@ -483,35 +536,44 @@ Map.prototype.getLocationInDirection = function(x,y,dir) {
 
 module.exports = Map;
 },{"backend/world/tile":9}],9:[function(require,module,exports){
-var Tile = function(type) {
-    this.type = type;
-    this.setWalkable(type);
-    this.setHasSubImage(type);
+var Tile = function(bg, fg) {
+    this.bg = bg;
+    this.fg = fg;
+    this.setWalkable(bg, fg);
+    this.setHasSubImage(bg, fg);
 };
 
-Tile.prototype.setWalkable = function(type) {
-    switch(type) {
-        case 'grass':
-            this.walkable = true;
-            break;
-        default:
+Tile.prototype.setWalkable = function(bg, fg) {
+    
+    this.walkable = true;
+
+    switch(bg) {
+        case 'water':
             this.walkable = false;
             break;
+        default: break;
+    }
+
+    switch(fg) {
+        case 'tree':
+        case 'rock':
+            this.walkable = false;
+            break;
+        default: break;
     }
 };
 
-Tile.prototype.setHasSubImage = function(type) {
+Tile.prototype.setHasSubImage = function(bg, fg) {
 
     this.sx = 0;
     this.sy = 0;
+    this.hasSubImage = false;
 
-    switch(type) {
+    switch(bg) {
         case 'water':
             this.hasSubImage = true;
             break;
-        default:
-            this.hasSubImage = false;
-            break;
+        default: break;
     }
 
 };
@@ -534,11 +596,14 @@ var World = function() {
 World.prototype.initActors = function() {
 
     var tile = null;
+    var gender;
 
     for(var i = 0; i < 4; i++)
     {
         tile = this.getRandomWalkableTile();
-        this.actors.push(new Npc(tile.x,tile.y,'down','wander','female'));
+        gender = parseInt(Math.random()*2) == 0 ? 'male' : 'female';
+
+        this.actors.push(new Npc(tile.x,tile.y,'down','wander',gender));
     }
 
 };
@@ -698,7 +763,7 @@ World.prototype.getRandomWalkableTile = function() {
         var x = parseInt(Math.random()*WORLD_WIDTH);
         var y = parseInt(Math.random()*WORLD_HEIGHT);
 
-        var tile = this.map.bg[y][x];
+        var tile = this.map.tiles[y][x];
 
         if(tile.walkable && this.getActorAtLocation(x,y) == null)
             return {
@@ -721,6 +786,8 @@ const ACTOR_DIR = 'actors/';
 const BGTILE_DIR = 'bgTiles/';
 const FGTILE_DIR = 'fgTiles/';
 
+// Canvas - constructor
+// @param {Map} map - map of the game world.
 var Canvas = function(map){
     this.map = map;
 
@@ -733,6 +800,7 @@ var Canvas = function(map){
     this.loadImages();
 };
 
+// setCanvasDimensions - adds listener for window resize, and calls resizeCanvas
 Canvas.prototype.setCanvasDimensions = function() {
     var self = this;
     window.addEventListener('resize', function(){
@@ -741,6 +809,47 @@ Canvas.prototype.setCanvasDimensions = function() {
     self.resizeCanvas();
 };
 
+// loadImages - loads all images for the game.
+Canvas.prototype.loadImages = function() {
+
+    var self = this;
+
+    var numLoaded = 0;
+
+    TileImage.callback = function(){
+        numLoaded++;
+        if (numLoaded == 7)
+        {
+            self.imagesLoaded = true;
+            self.redraw();
+        }
+    };
+
+    //  Initialize images structure
+    this.images = {};
+    this.images.bgTiles = {};
+    this.images.fgTiles = {};
+    this.images.actors = {};
+    this.images.actors.npcs = {};
+    this.images.actors.npcs.male = {};
+    this.images.actors.npcs.female = {};
+
+    // Load actor images
+    this.images.actors.player = new TileImage(ACTOR_DIR + 'player.png');
+    this.images.actors.npcs.male = new TileImage(ACTOR_DIR + 'npcs/male.png');
+    this.images.actors.npcs.female = new TileImage(ACTOR_DIR + 'npcs/female.png');
+
+    // Load background tile images
+    this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
+    this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
+
+    // Load foreground tile images
+    this.images.fgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
+    this.images.fgTiles.rock = new TileImage(BGTILE_DIR + 'rock.png');
+
+};
+
+// resizeCanvas - resizes the canvas based on window dimensions
 Canvas.prototype.resizeCanvas = function() {
     var width = (window.innerWidth);
     var height = (window.innerHeight);
@@ -756,6 +865,8 @@ Canvas.prototype.resizeCanvas = function() {
     this.canvas.height = TILES_DOWN * this.scaledTileSize;
 };
 
+// redraw - renders visible world around player
+// @param {Actor[]} actors - array of all actors in game.
 Canvas.prototype.redraw = function(actors) {
 
     if(!this.imagesLoaded || actors == null) 
@@ -789,37 +900,61 @@ Canvas.prototype.redraw = function(actors) {
     var buffer = 1;
 
     //  Render background tiles
-    var bgTiles = this.map.bg;
+    var tiles = this.map.tiles;
     var worldToCanvas = [];
 
     for(var y = -buffer; y < TILES_DOWN + buffer; y++) {
         for(var x = -buffer; x < TILES_ACROSS + buffer; x++) {
 
+            // Get world coordinates
             var worldY = (this.topTileY + y + WORLD_HEIGHT) % WORLD_HEIGHT;
             var worldX = (this.leftTileX + x + WORLD_WIDTH) % WORLD_WIDTH;
 
-            var tile = bgTiles[worldY][worldX];
+            // Get tile and tile image at world coordinates
+            var tile = tiles[worldY][worldX];
+            var bgImage = this.images.bgTiles[tile.bg].image;
+            if(tile.fg != null)
+                var fgImage = this.images.fgTiles[tile.fg].image;
 
-            var image = this.images.bgTiles[tile.type].image;
-
+            // TODO: Fix this sub image code for foreground tiles
             if(tile.hasSubImage)
             {
                 this.ctx.drawImage(
-                    image, 
+                    bgImage, 
                     tile.sx, tile.sy, 
                     TILE_SIZE, TILE_SIZE,
                     x*tileSize - this.xOffset,
                     y*tileSize - this.yOffset,
                     tileSize, tileSize
                 );
+
+                if(tile.fg != null)
+                {
+                    this.ctx.drawImage(
+                        fgImage,
+                        x*tileSize - this.xOffset,
+                        y*tileSize - this.yOffset,
+                        tileSize, tileSize
+                    );
+                }
             }
             else {
                 this.ctx.drawImage(
-                    image,
+                    bgImage,
                     x*tileSize - this.xOffset,
                     y*tileSize - this.yOffset,
                     tileSize, tileSize
                 );
+                
+                if(tile.fg != null)
+                {
+                    this.ctx.drawImage(
+                        fgImage,
+                        x*tileSize - this.xOffset,
+                        y*tileSize - this.yOffset,
+                        tileSize, tileSize
+                    );
+                }
             }
 
             if(worldToCanvas[worldY] == null)
@@ -833,10 +968,11 @@ Canvas.prototype.redraw = function(actors) {
         }
     }
 
-    this.renderActors(actors, worldToCanvas,tileSize);
+    this.renderActors(actors, worldToCanvas, tileSize);
 
 };
 
+// disableImageSmoothing - prevents pixel art from become blurred.
 Canvas.prototype.disableImageSmoothing = function(){
     if(this.ctx.imageSmoothingEnabled != null)
         this.ctx.imageSmoothingEnabled = false;
@@ -845,6 +981,10 @@ Canvas.prototype.disableImageSmoothing = function(){
     else this.ctx.webkitImageSmoothingEnabled = false;
 };
 
+// renderActors - draws actors to canvas
+// @param {Actor[]} actors - actors to draw on canvas.
+// @param {Location[][]} worldToCanvas - mapping from actual world coordinates to canvas coordinates.
+// @param {int} tileSize - size of a tile on the screen.
 Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
     
     var actor,canvasLoc,actorLoc,xOffset,yOffset,x,y;
@@ -868,7 +1008,12 @@ Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
     }
 };
 
-Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
+// renderActor - draws an actor at a location
+// @param {Actor} actor - actor to draw on canvas.
+// @param {int} x - x coordinate to draw at.
+// @param {int} y - y coordinate to draw at.
+// @param {int} size - size of actor.
+Canvas.prototype.renderActor = function(actor, x, y, size) {
         var image = this.getImageForActor(actor);
 
         if(image.isSubImage != null)
@@ -878,7 +1023,7 @@ Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
                 image.sx, image.sy,
                 TILE_SIZE, TILE_SIZE,
                 x,y,
-                tileSize,tileSize
+                size,size
             );
         }
         else 
@@ -887,11 +1032,15 @@ Canvas.prototype.renderActor = function(actor, x, y, tileSize) {
                 image,
                 x,
                 y,
-                tileSize, tileSize
+                size, size
             );
         }
 };
 
+// getTileOnCanvas - gets tile location given canvas coordinates
+// @param {int} x - x coordinate on canvas.
+// @param {int} y - y coordinate on canvas.
+// @return {Location} - the location of the tile.
 Canvas.prototype.getTileOnCanvas = function(x, y) {
 
     var tileSize = this.scaledTileSize;
@@ -902,18 +1051,21 @@ Canvas.prototype.getTileOnCanvas = function(x, y) {
     };
 };
 
+// getImageForActor - gets the correct image for an actor
+// @param {Actor} actor - the actor to get an image for.
+// @return {Image} - an object containing image and image metadata.
 Canvas.prototype.getImageForActor = function(actor) {
 
         if(actor instanceof Mob)
         {
-            // Set the right direction
+            // Set the correct direction
             var dir = actor.dir;
             var directionOffset = 
                 (dir == 'up') ? 0 : 
                 (dir == 'down') ? 1 :
                 (dir == 'left') ? 2: 3;
 
-            //  Get the right animation frame
+            //  Get the correct animation frame
             var animationOffset = 0;
 
             if(actor.isMoving)
@@ -921,13 +1073,15 @@ Canvas.prototype.getImageForActor = function(actor) {
                     (actor.currentSlideSteps > 0 && actor.currentSlideSteps < 6) ? 1 :
                     (actor.currentSlideSteps > 8 && actor.currentSlideSteps < 14) ? 2 : 0;
 
-            //  Pull the right image
+            //  Pull the correct image
             var image = this.images.actors.player.image;
 
             if(actor instanceof Npc)
             {
                 if(actor.gender == 'female')
                     image = this.images.actors.npcs.female.image;
+                else
+                    image = this.images.actors.npcs.male.image;
             }
 
             return {
@@ -940,40 +1094,6 @@ Canvas.prototype.getImageForActor = function(actor) {
         }
 
         return this.images.actors.player.image;
-};
-
-Canvas.prototype.loadImages = function() {
-
-    var self = this;
-
-    this.images = {};
-    this.images.actors = {};
-    this.images.bgTiles = {};
-
-    var numLoaded = 0;
-
-    TileImage.callback = function(){
-        numLoaded++;
-        if (numLoaded == 5)
-        {
-            self.imagesLoaded = true;
-            self.redraw();
-        }
-    }
-
-    this.images.actors.npcs = {};
-    this.images.actors.npcs.female = {};
-
-    for(i in DIRS)
-    {
-        this.images.actors.player = new TileImage(ACTOR_DIR + 'player.png');
-        this.images.actors.npcs.female = new TileImage(ACTOR_DIR + 'npcs/female.png');
-    }
-
-    this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
-    this.images.bgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
-    this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
-
 };
 
 module.exports = Canvas;

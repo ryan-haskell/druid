@@ -1,7 +1,7 @@
 const FPS = 60;
 
-const WORLD_WIDTH = 20
-const WORLD_HEIGHT = 20
+const WORLD_WIDTH = 50
+const WORLD_HEIGHT = 50
 
 const TILE_SIZE = 16
 
