@@ -1,6 +1,7 @@
 var Mob = require('backend/actors/mob');
 var Dialogue = require('backend/dialogue');
 
+var maleNames = ['Ryan','Scott', 'Harry', 'Nick', 'Dhruv', 'Ben', 'Steve'];
 var femaleNames = ['Rebecca','Caroline', 'Jennifer', 'Elizabeth', 'Lisa', 'Elaine', 'Rosie'];
 
 var Npc = function(x, y, dir, moveType, gender, name) {
@@ -24,6 +25,12 @@ Npc.prototype.setName = function(name){
         var index = parseInt(Math.random()*femaleNames.length);
         this.name = femaleNames[index];
         femaleNames.splice(index,1);
+    }
+    else if (this.gender == 'male' && maleNames.length > 0)
+    {
+        var index = parseInt(Math.random()*maleNames.length);
+        this.name = maleNames[index];
+        maleNames.splice(index,1);
     }
 };
 

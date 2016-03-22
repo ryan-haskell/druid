@@ -14,11 +14,14 @@ var World = function() {
 World.prototype.initActors = function() {
 
     var tile = null;
+    var gender;
 
     for(var i = 0; i < 4; i++)
     {
         tile = this.getRandomWalkableTile();
-        this.actors.push(new Npc(tile.x,tile.y,'down','wander','female'));
+        gender = parseInt(Math.random()*2) == 0 ? 'male' : 'female';
+
+        this.actors.push(new Npc(tile.x,tile.y,'down','wander',gender));
     }
 
 };

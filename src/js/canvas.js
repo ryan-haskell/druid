@@ -42,7 +42,7 @@ Canvas.prototype.loadImages = function() {
 
     TileImage.callback = function(){
         numLoaded++;
-        if (numLoaded == 5)
+        if (numLoaded == 6)
         {
             self.imagesLoaded = true;
             self.redraw();
@@ -54,10 +54,12 @@ Canvas.prototype.loadImages = function() {
     this.images.actors = {};
     this.images.bgTiles = {};
     this.images.actors.npcs = {};
+    this.images.actors.npcs.male = {};
     this.images.actors.npcs.female = {};
 
     // Load actor images
     this.images.actors.player = new TileImage(ACTOR_DIR + 'player.png');
+    this.images.actors.npcs.male = new TileImage(ACTOR_DIR + 'npcs/male.png');
     this.images.actors.npcs.female = new TileImage(ACTOR_DIR + 'npcs/female.png');
 
     // Load background tile images
@@ -274,6 +276,8 @@ Canvas.prototype.getImageForActor = function(actor) {
             {
                 if(actor.gender == 'female')
                     image = this.images.actors.npcs.female.image;
+                else
+                    image = this.images.actors.npcs.male.image;
             }
 
             return {
