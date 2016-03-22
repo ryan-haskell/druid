@@ -181,7 +181,7 @@ World.prototype.getRandomWalkableTile = function() {
         var x = parseInt(Math.random()*WORLD_WIDTH);
         var y = parseInt(Math.random()*WORLD_HEIGHT);
 
-        var tile = this.map.bg[y][x];
+        var tile = this.map.tiles[y][x];
 
         if(tile.walkable && this.getActorAtLocation(x,y) == null)
             return {

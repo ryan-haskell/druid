@@ -4,41 +4,101 @@ var Map = function() {
     this.width = WORLD_WIDTH;
     this.height = WORLD_HEIGHT;
 
-    this.bg = [];
-    this.fg = [];
+    this.tiles = [];
 
-    this.generateRandomMap();
+    this.generateLandMap();
 };
 
-Map.prototype.generateRandomMap = function(){
-    var tiles = this.bg;
+// Land terrain generation
+Map.prototype.generateLandMap = function(){
 
-    for(var y = 0; y < WORLD_HEIGHT; y++) {
-        tiles[y] = [];
-        for(var x = 0; x < WORLD_WIDTH; x++) {
+    //  Fill world with grass
+    for(var y = 0; y < WORLD_HEIGHT; y++)
+    {
+        this.tiles[y] = [];
+        for(var x = 0; x < WORLD_WIDTH; x++)
+        {
+            var bg = 'grass';
+            var fg = null;
 
-            var type = (parseInt(Math.random() * 5)) ? 'grass' : 'water';
-
-            tiles[y][x] = new Tile(type);
+            this.tiles[y][x] = new Tile(bg, fg);
         }
     }
 
-
-    tiles[0][0] = new Tile('grass');
+    //  Plant forests
+    this.plantForests(2);
+    this.plantLakes(.5);
+    this.setSpawnArea();
     this.addWorldDetails();
-    tiles[0][0] = new Tile('grass');
+
+};
+
+Map.prototype.plantForests = function(forestPercentage) {
+
+    this.plant(forestPercentage, null, 'tree');
+
+};
+
+Map.prototype.plantLakes = function(lakePercentage) {
+
+    this.plant(lakePercentage, 'water', null);
+
+};
+
+Map.prototype.setSpawnArea = function(){
+
+    this.randomlySpread('grass', null, [{ x: 0, y: 0 }], 75, 1);
+
+}
+
+Map.prototype.plant = function(percentage, bg, fg) {
+
+    var numSeeds = parseInt(percentage*WORLD_WIDTH*WORLD_HEIGHT/100) + 1;
+
+    for(var i = 0; i < numSeeds; i++)
+    {
+        var location = {
+            x: parseInt(Math.random()*WORLD_WIDTH),
+            y: parseInt(Math.random()*WORLD_HEIGHT)
+        };
+
+        this.randomlySpread(bg, fg, [location], 75, 1);
+    }
+}
+
+Map.prototype.randomlySpread = function(bg, fg, locationQueue, spread, spreadReduction) {
+
+    while(locationQueue.length > 0)
+    {
+        var loc = locationQueue.shift();
+
+        bg = (bg == null) ? this.tiles[loc.y][loc.x].bg : bg;
+        this.tiles[loc.y][loc.x] = new Tile(bg, fg);
+
+        for(var dir in DIRS)
+        {
+            // 20% chance that 
+            var willSpread = parseInt(Math.random()*100);
+
+            if(willSpread < spread)
+            {
+                locationQueue.push(this.getLocationInDirection(loc.x, loc.y, DIRS[dir]));
+            }
+        }
+
+        spread -= spreadReduction;
+
+    }
 };
 
 Map.prototype.addWorldDetails = function() {
     for(var y = 0; y < WORLD_HEIGHT; y++) {
         for(var x = 0; x < WORLD_WIDTH; x++) {
 
-            var tile = this.bg[y][x];
+            var tile = this.tiles[y][x];
             
-            if(tile.type == 'water') 
+            if(tile.bg == 'water') 
                 this.addWaterEdges(tile,x,y);
-            else if(tile.type == 'grass')
-                this.plantTrees(tile,x,y);
 
         }
     }
@@ -58,9 +118,7 @@ Map.prototype.addWaterEdges = function(tile,x,y) {
     };
 
     for(var i in neighbors) {
-        if(neighbors[i].type == 'grass'
-            || neighbors[i].type == 'tree'
-            || neighbors[i].type == 'rock')
+        if(neighbors[i].bg == 'grass')
         {
             numSides++;
             grassDirs[dirs[i]] = true;
@@ -118,23 +176,6 @@ Map.prototype.addWaterEdges = function(tile,x,y) {
     tile.sy *= TILE_SIZE;
 };
 
-Map.prototype.plantTrees = function(tile,x,y) {
-
-    var rand = parseInt(Math.random()*20);
-
-    if(rand == 0)
-    {
-        tile.type = 'tree';
-    }
-    else if(rand == 1)
-    {
-        tile.type = 'rock';
-    }
-    else return;
-
-    tile.setWalkable(tile.type);
-};
-
 Map.prototype.getTileNeighbors = function(x,y){
 
     var tiles = [];
@@ -145,14 +186,11 @@ Map.prototype.getTileNeighbors = function(x,y){
     return tiles;
 };
 
-
 Map.prototype.getTileInDirection = function(x,y,dir) {
-
-    var bgTiles = this.bg;
 
     var tileLoc = this.getLocationInDirection(x,y,dir);
 
-    return this.bg[tileLoc.y][tileLoc.x];
+    return this.tiles[tileLoc.y][tileLoc.x];
 };
 
 Map.prototype.getLocationInDirection = function(x,y,dir) {

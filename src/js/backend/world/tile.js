@@ -1,32 +1,41 @@
-var Tile = function(type) {
-    this.type = type;
-    this.setWalkable(type);
-    this.setHasSubImage(type);
+var Tile = function(bg, fg) {
+    this.bg = bg;
+    this.fg = fg;
+    this.setWalkable(bg, fg);
+    this.setHasSubImage(bg, fg);
 };
 
-Tile.prototype.setWalkable = function(type) {
-    switch(type) {
-        case 'grass':
-            this.walkable = true;
-            break;
-        default:
+Tile.prototype.setWalkable = function(bg, fg) {
+    
+    this.walkable = true;
+
+    switch(bg) {
+        case 'water':
             this.walkable = false;
             break;
+        default: break;
+    }
+
+    switch(fg) {
+        case 'tree':
+        case 'rock':
+            this.walkable = false;
+            break;
+        default: break;
     }
 };
 
-Tile.prototype.setHasSubImage = function(type) {
+Tile.prototype.setHasSubImage = function(bg, fg) {
 
     this.sx = 0;
     this.sy = 0;
+    this.hasSubImage = false;
 
-    switch(type) {
+    switch(bg) {
         case 'water':
             this.hasSubImage = true;
             break;
-        default:
-            this.hasSubImage = false;
-            break;
+        default: break;
     }
 
 };

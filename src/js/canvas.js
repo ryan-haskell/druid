@@ -51,8 +51,9 @@ Canvas.prototype.loadImages = function() {
 
     //  Initialize images structure
     this.images = {};
-    this.images.actors = {};
     this.images.bgTiles = {};
+    this.images.fgTiles = {};
+    this.images.actors = {};
     this.images.actors.npcs = {};
     this.images.actors.npcs.male = {};
     this.images.actors.npcs.female = {};
@@ -64,9 +65,11 @@ Canvas.prototype.loadImages = function() {
 
     // Load background tile images
     this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
-    this.images.bgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
-    this.images.bgTiles.rock = new TileImage(BGTILE_DIR + 'rock.png');
     this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
+
+    // Load foreground tile images
+    this.images.fgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
+    this.images.fgTiles.rock = new TileImage(BGTILE_DIR + 'rock.png');
 
 };
 
@@ -121,37 +124,61 @@ Canvas.prototype.redraw = function(actors) {
     var buffer = 1;
 
     //  Render background tiles
-    var bgTiles = this.map.bg;
+    var tiles = this.map.tiles;
     var worldToCanvas = [];
 
     for(var y = -buffer; y < TILES_DOWN + buffer; y++) {
         for(var x = -buffer; x < TILES_ACROSS + buffer; x++) {
 
+            // Get world coordinates
             var worldY = (this.topTileY + y + WORLD_HEIGHT) % WORLD_HEIGHT;
             var worldX = (this.leftTileX + x + WORLD_WIDTH) % WORLD_WIDTH;
 
-            var tile = bgTiles[worldY][worldX];
+            // Get tile and tile image at world coordinates
+            var tile = tiles[worldY][worldX];
+            var bgImage = this.images.bgTiles[tile.bg].image;
+            if(tile.fg != null)
+                var fgImage = this.images.fgTiles[tile.fg].image;
 
-            var image = this.images.bgTiles[tile.type].image;
-
+            // TODO: Fix this sub image code for foreground tiles
             if(tile.hasSubImage)
             {
                 this.ctx.drawImage(
-                    image, 
+                    bgImage, 
                     tile.sx, tile.sy, 
                     TILE_SIZE, TILE_SIZE,
                     x*tileSize - this.xOffset,
                     y*tileSize - this.yOffset,
                     tileSize, tileSize
                 );
+
+                if(tile.fg != null)
+                {
+                    this.ctx.drawImage(
+                        fgImage,
+                        x*tileSize - this.xOffset,
+                        y*tileSize - this.yOffset,
+                        tileSize, tileSize
+                    );
+                }
             }
             else {
                 this.ctx.drawImage(
-                    image,
+                    bgImage,
                     x*tileSize - this.xOffset,
                     y*tileSize - this.yOffset,
                     tileSize, tileSize
                 );
+                
+                if(tile.fg != null)
+                {
+                    this.ctx.drawImage(
+                        fgImage,
+                        x*tileSize - this.xOffset,
+                        y*tileSize - this.yOffset,
+                        tileSize, tileSize
+                    );
+                }
             }
 
             if(worldToCanvas[worldY] == null)
