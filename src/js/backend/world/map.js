@@ -23,9 +23,10 @@ Map.prototype.generateRandomMap = function(){
         }
     }
 
-    tiles[0][0] = new Tile('grass');
 
+    tiles[0][0] = new Tile('grass');
     this.addWorldDetails();
+    tiles[0][0] = new Tile('grass');
 };
 
 Map.prototype.addWorldDetails = function() {
@@ -57,7 +58,9 @@ Map.prototype.addWaterEdges = function(tile,x,y) {
     };
 
     for(var i in neighbors) {
-        if(neighbors[i].type == 'grass' || neighbors[i].type == 'tree')
+        if(neighbors[i].type == 'grass'
+            || neighbors[i].type == 'tree'
+            || neighbors[i].type == 'rock')
         {
             numSides++;
             grassDirs[dirs[i]] = true;
@@ -117,14 +120,19 @@ Map.prototype.addWaterEdges = function(tile,x,y) {
 
 Map.prototype.plantTrees = function(tile,x,y) {
 
-    var rand = parseInt(Math.random()*10);
+    var rand = parseInt(Math.random()*20);
 
     if(rand == 0)
     {
         tile.type = 'tree';
-        tile.setWalkable(tile.type);
     }
+    else if(rand == 1)
+    {
+        tile.type = 'rock';
+    }
+    else return;
 
+    tile.setWalkable(tile.type);
 };
 
 Map.prototype.getTileNeighbors = function(x,y){

@@ -42,7 +42,7 @@ Canvas.prototype.loadImages = function() {
 
     TileImage.callback = function(){
         numLoaded++;
-        if (numLoaded == 6)
+        if (numLoaded == 7)
         {
             self.imagesLoaded = true;
             self.redraw();
@@ -65,6 +65,7 @@ Canvas.prototype.loadImages = function() {
     // Load background tile images
     this.images.bgTiles.grass = new TileImage(BGTILE_DIR + 'grass.png');
     this.images.bgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
+    this.images.bgTiles.rock = new TileImage(BGTILE_DIR + 'rock.png');
     this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
 
 };
