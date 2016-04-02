@@ -13,19 +13,20 @@ Player.prototype.interactWith = function(npc) {
     this.interactingActor = npc;
     npc.isInteracting = true;
 
-    npc.printDialogue();
+    //npc.printDialogue();
 
 }
 
 Player.prototype.respond = function(numberPressed) {
 
-    //  If the player has responded:
+    var npc = this.interactingActor;
+
     if(numberPressed != null)
     {
-        var npc = this.interactingActor;
         npc.dialogue.respond(numberPressed-1);
-        npc.printDialogue();
     }
+
+    npc.printDialogue();
 }
 
 module.exports = Player;

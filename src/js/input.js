@@ -33,6 +33,7 @@ Input.prototype.initState = function() {
     };
 
     this.state.interact = false;
+    this.state.interactReleased = true;
 
     this.state.numberPressed = null;
     this.state.numberReleased = true;
@@ -59,33 +60,35 @@ Input.prototype.resetMouseDown = function(){
     this.state.click.processed = true;
 };
 
-Input.prototype.setKeyState = function(keyCode, value) {
+Input.prototype.setKeyState = function(keyCode, isKeyDown) {
     switch(keyCode) {
-        case 87: case 38: // w
-            this.state.move.up = value;
+        case 87: case 38: // w and up arrow
+            this.state.move.up = isKeyDown;
             return;
-        case 65: case 37: // a
-            this.state.move.left = value;
+        case 65: case 37: // a and left arrow
+            this.state.move.left = isKeyDown;
             return;
-        case 83: case 40: // s
-            this.state.move.down = value;
+        case 83: case 40: // s and down arrow
+            this.state.move.down = isKeyDown;
             return;
-        case 68: case 39: // d
-            this.state.move.right = value;
+        case 68: case 39: // d and right arrow
+            this.state.move.right = isKeyDown;
             return;
         case 32:
-            this.state.interact = value;
+            this.pressOnce('interact', 'interactReleased', true, isKeyDown);
             return;
         case 49: case 50: case 51:
-
-            if(value && this.state.numberReleased)
-                this.state.numberPressed = keyCode - 48;
-            else {
-                this.state.numberReleased = true;
-            }
-
+            this.pressOnce('numberPressed', 'numberReleased', keyCode - 48, isKeyDown);
             return;
     }
+};
+
+Input.prototype.pressOnce = function(pressed, released, value, isKeyDown) {
+            if(isKeyDown && this.state[released])
+                this.state[pressed] = value;
+            else {
+                this.state[released] = true;
+            }
 };
 
 module.exports = Input;

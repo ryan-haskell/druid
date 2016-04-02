@@ -47,14 +47,21 @@ World.prototype.updateActors = function(state) {
 
     this.attemptPlayerMove(state);
 
-    if(state.interact)
-        this.attemptPlayerInteract();
-
-    if(this.player.interactingActor != null && state.numberReleased)
+    if(this.player.interactingActor != null )
     {
-        this.player.respond(state.numberPressed);
-        state.numberPressed = null;
+        if(state.numberPressed != null)
+        {
+            this.player.respond(state.numberPressed);
+            state.numberPressed = null;
+        }
+        else if(state.interact)
+        {
+            this.player.respond();
+            state.interact = false;
+        }
     }
+    else if(state.interact)
+        this.attemptPlayerInteract();
 
     // Let npcs act
     for(var i in this.actors)

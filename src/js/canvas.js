@@ -68,8 +68,8 @@ Canvas.prototype.loadImages = function() {
     this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
 
     // Load foreground tile images
-    this.images.fgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
-    this.images.fgTiles.rock = new TileImage(BGTILE_DIR + 'rock.png');
+    this.images.fgTiles.tree = new TileImage(FGTILE_DIR + 'tree.png');
+    this.images.fgTiles.rock = new TileImage(FGTILE_DIR + 'rock.png');
 
 };
 
