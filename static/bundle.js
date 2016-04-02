@@ -198,83 +198,84 @@ Player.prototype.interactWith = function(npc) {
     this.interactingActor = npc;
     npc.isInteracting = true;
 
-    npc.printDialogue();
+    //npc.printDialogue();
 
 }
 
 Player.prototype.respond = function(numberPressed) {
 
-    //  If the player has responded:
+    var npc = this.interactingActor;
+
     if(numberPressed != null)
     {
-        var npc = this.interactingActor;
         npc.dialogue.respond(numberPressed-1);
-        npc.printDialogue();
     }
+
+    npc.printDialogue();
 }
 
 module.exports = Player;
 },{"backend/actors/mob":3}],6:[function(require,module,exports){
-var Dialogue = function(npc) {
+module.exports = class Dialogue {
 
-    this.position = 0;
+    constructor(npc) {
 
-    this.messages = [
-        {
-            text: 'Hi, I\'m ' + npc.name + '! Nice to meet you, ' + PLAYER_NAME,
-            responses: [
-                {
-                    text: 'Hi, ' + npc.name + '! Nice to meet you!',
-                    route: 1
-                },
-                {
-                    text: npc.name + ' is a terrible name!',
-                    route: 2
-                }
-            ]
-        },
-        {
-            text: 'It\'s nice meeting you too!',
-            route: 3
-        },
-        {
-            text: '['+npc.name+' is busy crying]'
-        },
-        {
-            text: 'Have a great day, '+ PLAYER_NAME + '!'
-        }
-    ];
+        this.position = 0;
 
-};
+        this.messages = [
+            {
+                text: 'Hi, I\'m ' + npc.name + '! Nice to meet you, ' + PLAYER_NAME,
+                responses: [
+                    {
+                        text: 'Hi, ' + npc.name + '! Nice to meet you!',
+                        route: 1
+                    },
+                    {
+                        text: npc.name + ' is a terrible name!',
+                        route: 2
+                    }
+                ]
+            },
+            {
+                text: 'It\'s nice meeting you too!',
+                route: 3
+            },
+            {
+                text: '['+npc.name+' is busy crying]'
+            },
+            {
+                text: 'Have a great day, '+ PLAYER_NAME + '!'
+            }
+        ];
 
-Dialogue.prototype.getMessage = function(){
-
-    var message = this.messages[this.position];
-
-    if(message.route != null)
-        this.position = message.route;
-
-    return message;
-};
-
-Dialogue.prototype.respond = function(responseIndex) {
-
-    var message = this.messages[this.position];
-
-    //  If there are no responses
-    if(message.responses == null)
-    {
-        //  And there is a route to follow
-        if(message.route != null)
-            this.position = message.route
     }
 
-    //  If response is valid
-    if(responseIndex != null && message.responses != null && responseIndex < message.responses.length)
-        this.position = message.responses[responseIndex].route;
-}
+    getMessage(){
 
-module.exports = Dialogue;
+        var message = this.messages[this.position];
+
+        return message;
+    };
+
+    respond(responseIndex) {
+
+        var message = this.messages[this.position];
+
+        //  If there are no responses
+        if(message.responses == null)
+        {
+            //  And there is a route to follow
+            if(message.route != null)
+                this.position = message.route
+        }
+
+        //  If response is valid
+        if(responseIndex != null && message.responses != null && responseIndex < message.responses.length)
+            this.position = message.responses[responseIndex].route;
+
+    }
+
+}
 },{}],7:[function(require,module,exports){
 var World = require('backend/world/world');
 
@@ -629,14 +630,21 @@ World.prototype.updateActors = function(state) {
 
     this.attemptPlayerMove(state);
 
-    if(state.interact)
-        this.attemptPlayerInteract();
-
-    if(this.player.interactingActor != null && state.numberReleased)
+    if(this.player.interactingActor != null )
     {
-        this.player.respond(state.numberPressed);
-        state.numberPressed = null;
+        if(state.numberPressed != null)
+        {
+            this.player.respond(state.numberPressed);
+            state.numberPressed = null;
+        }
+        else if(state.interact)
+        {
+            this.player.respond();
+            state.interact = false;
+        }
     }
+    else if(state.interact)
+        this.attemptPlayerInteract();
 
     // Let npcs act
     for(var i in this.actors)
@@ -844,8 +852,8 @@ Canvas.prototype.loadImages = function() {
     this.images.bgTiles.water = new TileImage(BGTILE_DIR + 'water.png');
 
     // Load foreground tile images
-    this.images.fgTiles.tree = new TileImage(BGTILE_DIR + 'tree.png');
-    this.images.fgTiles.rock = new TileImage(BGTILE_DIR + 'rock.png');
+    this.images.fgTiles.tree = new TileImage(FGTILE_DIR + 'tree.png');
+    this.images.fgTiles.rock = new TileImage(FGTILE_DIR + 'rock.png');
 
 };
 
@@ -1133,6 +1141,7 @@ Input.prototype.initState = function() {
     };
 
     this.state.interact = false;
+    this.state.interactReleased = true;
 
     this.state.numberPressed = null;
     this.state.numberReleased = true;
@@ -1159,33 +1168,35 @@ Input.prototype.resetMouseDown = function(){
     this.state.click.processed = true;
 };
 
-Input.prototype.setKeyState = function(keyCode, value) {
+Input.prototype.setKeyState = function(keyCode, isKeyDown) {
     switch(keyCode) {
-        case 87: case 38: // w
-            this.state.move.up = value;
+        case 87: case 38: // w and up arrow
+            this.state.move.up = isKeyDown;
             return;
-        case 65: case 37: // a
-            this.state.move.left = value;
+        case 65: case 37: // a and left arrow
+            this.state.move.left = isKeyDown;
             return;
-        case 83: case 40: // s
-            this.state.move.down = value;
+        case 83: case 40: // s and down arrow
+            this.state.move.down = isKeyDown;
             return;
-        case 68: case 39: // d
-            this.state.move.right = value;
+        case 68: case 39: // d and right arrow
+            this.state.move.right = isKeyDown;
             return;
         case 32:
-            this.state.interact = value;
+            this.pressOnce('interact', 'interactReleased', true, isKeyDown);
             return;
         case 49: case 50: case 51:
-
-            if(value && this.state.numberReleased)
-                this.state.numberPressed = keyCode - 48;
-            else {
-                this.state.numberReleased = true;
-            }
-
+            this.pressOnce('numberPressed', 'numberReleased', keyCode - 48, isKeyDown);
             return;
     }
+};
+
+Input.prototype.pressOnce = function(pressed, released, value, isKeyDown) {
+            if(isKeyDown && this.state[released])
+                this.state[pressed] = value;
+            else {
+                this.state[released] = true;
+            }
 };
 
 module.exports = Input;
