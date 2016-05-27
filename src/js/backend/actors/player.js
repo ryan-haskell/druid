@@ -15,7 +15,11 @@ Player.prototype.interactWith = function(npc) {
 
     //npc.printDialogue();
 
-}
+};
+
+Player.prototype.isInteracting = function(){
+    return this.interactingActor;
+};
 
 Player.prototype.respond = function(numberPressed) {
 

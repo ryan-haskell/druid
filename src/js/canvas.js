@@ -98,6 +98,14 @@ Canvas.prototype.redraw = function(actors) {
 
     this.disableImageSmoothing();
 
+    this.drawWorldAndActors(actors);
+
+    this.drawHud(actors[0]);
+
+};
+
+Canvas.prototype.drawWorldAndActors = function(actors) {
+
     var tileSize = this.scaledTileSize;
 
     //  Get player's x and y corner of screen
@@ -193,6 +201,37 @@ Canvas.prototype.redraw = function(actors) {
     }
 
     this.renderActors(actors, worldToCanvas, tileSize);
+
+};
+
+Canvas.prototype.drawHud = function(player){
+
+    // Dialogue Box
+    if(player.isInteracting())
+        this.drawDialogueHud(player, player.isInteracting());
+
+};
+
+Canvas.prototype.drawDialogueHud = function(player, actor) {
+
+    var width = this.canvas.width;
+    var height = this.canvas.height;
+    var tileSize = this.scaledTileSize;
+
+    var margin = tileSize;
+
+    var hudWidth = width - margin;
+    var hudHeight = 2*tileSize;
+    var hudXOffset = parseInt(margin/2);
+    var hudYOffset = height - parseInt(margin/2) - hudHeight;
+
+    // Background
+    this.ctx.fillStyle = '#333';
+    this.ctx.fillRect(hudXOffset, hudYOffset, hudWidth, hudHeight);
+
+    // Avatar Box
+    this.ctx.fillStyle = '#666';
+    this.ctx.fillRect(hudXOffset, hudYOffset, hudHeight, hudHeight);
 
 };
 
