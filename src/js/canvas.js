@@ -250,14 +250,45 @@ Canvas.prototype.drawDialogueHud = function(player, actor) {
         hudWidth-hudHeight-(2*padding)
     );
 
-    //  Current Dialogue
+
+    // Actor Message
+    var message = actor.dialogue.getMessage();
+
+    this.ctx.fillStyle = '#ccc';
     this.ctx.font = parseInt(tileSize/4)+"px 'Roboto'";
     this.ctx.fillText(
-        actor.dialogue.getMessage().text,
+        message.text,
         hudXOffset+hudHeight+padding,
         hudYOffset+parseInt(tileSize/2) + padding,
         hudWidth-hudHeight-(2*padding)        
     );
+
+    // Player Responses
+    var options = '';
+
+    if(message.responses)
+    {
+        for(var i in message.responses)
+        {
+            var response = message.responses[i];
+            var optionNumber = (parseInt(i) + 1);
+            options += optionNumber + ': "' + response.text + '"    ';
+        }   
+    }
+    else if(message.route)
+    {
+        options += '1: CONTINUE';
+    }
+
+    this.ctx.fillStyle = '#fff';
+    this.ctx.textBaseline = 'alphabetic';
+    this.ctx.fillText(
+        options,
+        hudXOffset+hudHeight+padding,
+        height - parseInt(3*margin/4),
+        hudWidth-hudHeight-(2*padding)        
+    );
+
 
 };
 

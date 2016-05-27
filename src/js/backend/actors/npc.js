@@ -78,15 +78,4 @@ Npc.prototype.walk = function(world) {
     }
 };
 
-Npc.prototype.printDialogue = function(){
-    
-    var message = this.dialogue.getMessage();
-    
-    //  Temporary console dialogue
-    console.log(message.text);
-
-    for(i in message.responses)
-        console.log( (parseInt(i)+1) + ': ' + message.responses[i].text);
-};
-
 module.exports = Npc;

@@ -29,8 +29,6 @@ Player.prototype.respond = function(numberPressed) {
     {
         npc.dialogue.respond(numberPressed-1);
     }
-
-    npc.printDialogue();
 }
 
 module.exports = Player;
