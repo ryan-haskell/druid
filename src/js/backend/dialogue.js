@@ -6,7 +6,7 @@ module.exports = class Dialogue {
 
         this.messages = [
             {
-                text: 'Hi, I\'m ' + npc.name + '! Nice to meet you, ' + PLAYER_NAME,
+                text: 'Hi, I\'m ' + npc.name + '! Nice to meet you, ' + PLAYER_NAME + '!',
                 responses: [
                     {
                         text: 'Hi, ' + npc.name + '! Nice to meet you!',

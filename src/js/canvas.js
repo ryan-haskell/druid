@@ -233,6 +233,32 @@ Canvas.prototype.drawDialogueHud = function(player, actor) {
     this.ctx.fillStyle = '#666';
     this.ctx.fillRect(hudXOffset, hudYOffset, hudHeight, hudHeight);
 
+    // Actor Image
+    this.renderActor(actor, hudXOffset, hudYOffset, hudHeight, 'down');
+
+    // Actor Name
+    var padding = parseInt(tileSize/8);
+
+    this.ctx.fillStyle = '#fff';
+    this.ctx.textBaseline = "top";
+    this.ctx.font = parseInt(tileSize/2)+"px 'Roboto Slab'";
+
+    this.ctx.fillText(
+        actor.name, 
+        hudXOffset+hudHeight+padding, 
+        hudYOffset, 
+        hudWidth-hudHeight-(2*padding)
+    );
+
+    //  Current Dialogue
+    this.ctx.font = parseInt(tileSize/4)+"px 'Roboto'";
+    this.ctx.fillText(
+        actor.dialogue.getMessage().text,
+        hudXOffset+hudHeight+padding,
+        hudYOffset+parseInt(tileSize/2) + padding,
+        hudWidth-hudHeight-(2*padding)        
+    );
+
 };
 
 // disableImageSmoothing - prevents pixel art from become blurred.
@@ -276,8 +302,9 @@ Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
 // @param {int} x - x coordinate to draw at.
 // @param {int} y - y coordinate to draw at.
 // @param {int} size - size of actor.
-Canvas.prototype.renderActor = function(actor, x, y, size) {
-        var image = this.getImageForActor(actor);
+// @param {string} dir - direction actor is facing.
+Canvas.prototype.renderActor = function(actor, x, y, size, dir) {
+        var image = this.getImageForActor(actor, dir);
 
         if(image.isSubImage != null)
         {
@@ -317,12 +344,14 @@ Canvas.prototype.getTileOnCanvas = function(x, y) {
 // getImageForActor - gets the correct image for an actor
 // @param {Actor} actor - the actor to get an image for.
 // @return {Image} - an object containing image and image metadata.
-Canvas.prototype.getImageForActor = function(actor) {
+Canvas.prototype.getImageForActor = function(actor, dir) {
 
         if(actor instanceof Mob)
         {
             // Set the correct direction
-            var dir = actor.dir;
+            if(!dir)
+                dir = actor.dir;
+
             var directionOffset = 
                 (dir == 'up') ? 0 : 
                 (dir == 'down') ? 1 :
