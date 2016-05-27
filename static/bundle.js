@@ -170,17 +170,6 @@ Npc.prototype.walk = function(world) {
     }
 };
 
-Npc.prototype.printDialogue = function(){
-    
-    var message = this.dialogue.getMessage();
-    
-    //  Temporary console dialogue
-    console.log(message.text);
-
-    for(i in message.responses)
-        console.log( (parseInt(i)+1) + ': ' + message.responses[i].text);
-};
-
 module.exports = Npc;
 },{"backend/actors/mob":3,"backend/dialogue":6}],5:[function(require,module,exports){
 var Mob = require('backend/actors/mob'); 
@@ -200,7 +189,11 @@ Player.prototype.interactWith = function(npc) {
 
     //npc.printDialogue();
 
-}
+};
+
+Player.prototype.isInteracting = function(){
+    return this.interactingActor;
+};
 
 Player.prototype.respond = function(numberPressed) {
 
@@ -210,8 +203,6 @@ Player.prototype.respond = function(numberPressed) {
     {
         npc.dialogue.respond(numberPressed-1);
     }
-
-    npc.printDialogue();
 }
 
 module.exports = Player;
@@ -224,7 +215,7 @@ module.exports = class Dialogue {
 
         this.messages = [
             {
-                text: 'Hi, I\'m ' + npc.name + '! Nice to meet you, ' + PLAYER_NAME,
+                text: 'Hi, I\'m ' + npc.name + '! Nice to meet you, ' + PLAYER_NAME + '!',
                 responses: [
                     {
                         text: 'Hi, ' + npc.name + '! Nice to meet you!',
@@ -882,6 +873,14 @@ Canvas.prototype.redraw = function(actors) {
 
     this.disableImageSmoothing();
 
+    this.drawWorldAndActors(actors);
+
+    this.drawHud(actors[0]);
+
+};
+
+Canvas.prototype.drawWorldAndActors = function(actors) {
+
     var tileSize = this.scaledTileSize;
 
     //  Get player's x and y corner of screen
@@ -980,6 +979,94 @@ Canvas.prototype.redraw = function(actors) {
 
 };
 
+Canvas.prototype.drawHud = function(player){
+
+    // Dialogue Box
+    if(player.isInteracting())
+        this.drawDialogueHud(player, player.isInteracting());
+
+};
+
+Canvas.prototype.drawDialogueHud = function(player, actor) {
+
+    var width = this.canvas.width;
+    var height = this.canvas.height;
+    var tileSize = this.scaledTileSize;
+
+    var margin = tileSize;
+
+    var hudWidth = width - margin;
+    var hudHeight = 2*tileSize;
+    var hudXOffset = parseInt(margin/2);
+    var hudYOffset = height - parseInt(margin/2) - hudHeight;
+
+    // Background
+    this.ctx.fillStyle = '#333';
+    this.ctx.fillRect(hudXOffset, hudYOffset, hudWidth, hudHeight);
+
+    // Avatar Box
+    this.ctx.fillStyle = '#666';
+    this.ctx.fillRect(hudXOffset, hudYOffset, hudHeight, hudHeight);
+
+    // Actor Image
+    this.renderActor(actor, hudXOffset, hudYOffset, hudHeight, 'down');
+
+    // Actor Name
+    var padding = parseInt(tileSize/8);
+
+    this.ctx.fillStyle = '#fff';
+    this.ctx.textBaseline = "top";
+    this.ctx.font = parseInt(tileSize/2)+"px 'Roboto Slab'";
+
+    this.ctx.fillText(
+        actor.name, 
+        hudXOffset+hudHeight+padding, 
+        hudYOffset, 
+        hudWidth-hudHeight-(2*padding)
+    );
+
+
+    // Actor Message
+    var message = actor.dialogue.getMessage();
+
+    this.ctx.fillStyle = '#ccc';
+    this.ctx.font = parseInt(tileSize/4)+"px 'Roboto'";
+    this.ctx.fillText(
+        message.text,
+        hudXOffset+hudHeight+padding,
+        hudYOffset+parseInt(tileSize/2) + padding,
+        hudWidth-hudHeight-(2*padding)        
+    );
+
+    // Player Responses
+    var options = '';
+
+    if(message.responses)
+    {
+        for(var i in message.responses)
+        {
+            var response = message.responses[i];
+            var optionNumber = (parseInt(i) + 1);
+            options += optionNumber + ': "' + response.text + '"    ';
+        }   
+    }
+    else if(message.route)
+    {
+        options += '1: CONTINUE';
+    }
+
+    this.ctx.fillStyle = '#fff';
+    this.ctx.textBaseline = 'alphabetic';
+    this.ctx.fillText(
+        options,
+        hudXOffset+hudHeight+padding,
+        height - parseInt(3*margin/4),
+        hudWidth-hudHeight-(2*padding)        
+    );
+
+
+};
+
 // disableImageSmoothing - prevents pixel art from become blurred.
 Canvas.prototype.disableImageSmoothing = function(){
     if(this.ctx.imageSmoothingEnabled != null)
@@ -1021,8 +1108,9 @@ Canvas.prototype.renderActors = function(actors, worldToCanvas, tileSize) {
 // @param {int} x - x coordinate to draw at.
 // @param {int} y - y coordinate to draw at.
 // @param {int} size - size of actor.
-Canvas.prototype.renderActor = function(actor, x, y, size) {
-        var image = this.getImageForActor(actor);
+// @param {string} dir - direction actor is facing.
+Canvas.prototype.renderActor = function(actor, x, y, size, dir) {
+        var image = this.getImageForActor(actor, dir);
 
         if(image.isSubImage != null)
         {
@@ -1062,12 +1150,14 @@ Canvas.prototype.getTileOnCanvas = function(x, y) {
 // getImageForActor - gets the correct image for an actor
 // @param {Actor} actor - the actor to get an image for.
 // @return {Image} - an object containing image and image metadata.
-Canvas.prototype.getImageForActor = function(actor) {
+Canvas.prototype.getImageForActor = function(actor, dir) {
 
         if(actor instanceof Mob)
         {
             // Set the correct direction
-            var dir = actor.dir;
+            if(!dir)
+                dir = actor.dir;
+
             var directionOffset = 
                 (dir == 'up') ? 0 : 
                 (dir == 'down') ? 1 :
